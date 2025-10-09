@@ -1,6 +1,7 @@
+import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { router } from 'expo-router';
-import React, { useRef, useState } from 'react';
+import React, { useState } from 'react';
 import {
   ActivityIndicator, Alert,
   Platform,
@@ -18,7 +19,16 @@ export default function RegisterScreen() {
   const [dateOfBirth, setDateOfBirth] = useState('');
   const [country, setCountry] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showPasswordPovtor, setShowPasswordPovtor] = useState(false);
+
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
+
+  const togglePasswordPovtorVisibility = () => {
+    setShowPasswordPovtor(!showPasswordPovtor);
+  };
 
   const { register } = useAuth();
 
@@ -35,7 +45,7 @@ export default function RegisterScreen() {
     return emailRegex.test(email);
   };
 
-  const showNotification = (message: string, type = 'error') => {
+  const showNotification = (message: string, type: string) => {
     if (Platform.OS === 'web') {
       // Для веб-версии используем браузерные уведомления
       if (type === 'error') {
@@ -45,7 +55,11 @@ export default function RegisterScreen() {
       }
     } else {
       // Для мобильных устройств используем Toast
+      if (type === 'error') {
         Alert.alert('Ошибка', message);
+      } else {
+        Alert.alert(message);
+      }
     }
   };
 
@@ -120,7 +134,8 @@ export default function RegisterScreen() {
         country: country || undefined
       });
       
-      router.replace('/main'); 
+      router.replace('/'); 
+      showNotification('Регистрация прошла успешна','Успех')
 
       
     } catch (error: any) {
@@ -149,23 +164,47 @@ export default function RegisterScreen() {
             placeholderTextColor="#888"
           />
 
-          <TextInput
-            style={styles.input}
-            placeholder="Пароль(не менее 8 симловов) *"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-            placeholderTextColor="#888"
-          />
+          <View style={styles.passwordContainer}>
+            <TextInput
+              style={styles.input}
+              placeholder="Пароль (не менее 8 символов) *"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry={!showPassword}
+              placeholderTextColor="#888"
+            />
+            <TouchableOpacity 
+              style={styles.eyeButton}
+              onPress={togglePasswordVisibility}
+            >
+            <Ionicons 
+              name={showPassword ? "eye-off" : "eye"} 
+              size={20} 
+              color="#fff" 
+            />
+            </TouchableOpacity>
+          </View>
 
-          <TextInput
-            style={styles.input}
-            placeholder="Повтор пароля *"
-            value={passwordPovtor}
-            onChangeText={setPasswordPovtor}
-            secureTextEntry
-            placeholderTextColor="#888"
-          />
+          <View style={styles.passwordContainer}>
+            <TextInput
+              style={styles.input}
+              placeholder="Повтор пароля *"
+              value={passwordPovtor}
+              onChangeText={setPasswordPovtor}
+              secureTextEntry={!showPasswordPovtor}
+              placeholderTextColor="#888"
+            />
+            <TouchableOpacity 
+              style={styles.eyeButton}
+              onPress={togglePasswordPovtorVisibility}
+            >
+            <Ionicons 
+              name={showPasswordPovtor? "eye-off" : "eye"} 
+              size={20} 
+              color="#fff" 
+            />
+            </TouchableOpacity>
+          </View>
 
           <TextInput
             style={styles.input}
@@ -236,7 +275,7 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     padding: 20,
     justifyContent: 'center',
-    backgroundColor: '#1a1a1a',
+    backgroundColor: 'black',
   },
   form: {
     width: '70%',
@@ -293,5 +332,17 @@ const styles = StyleSheet.create({
     right: 15,
     top: 15,
     fontSize: 18,
-  } 
+  },
+   passwordContainer: {
+    position: 'relative',
+  },
+  eyeButton: {
+    position: 'absolute',
+    right: 15,
+    top: 15,
+    padding: 5,
+  },
+  eyeIcon: {
+    fontSize: 18,
+  },
 });

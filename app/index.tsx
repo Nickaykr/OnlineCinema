@@ -1,82 +1,122 @@
+import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
 import {
-  ActivityIndicator, Alert, StyleSheet, Text, TextInput, TouchableOpacity, View
+  ActivityIndicator, Alert,
+  Platform,
+  StyleSheet, Text, TextInput, TouchableOpacity,
+  View
 } from 'react-native';
 import { useAuth } from './context/AuthContext';
-
 
 export default function WelcomeScreen() {
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const { login, isLoading } = useAuth();
+  const [showPassword, setShowPassword] = useState(false);
+
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
+
+   const showNotification = (message: string, type: string) => {
+      if (Platform.OS === 'web') {
+        // Для веб-версии используем браузерные уведомления
+        if (type === 'error') {
+          alert(`Ошибка: ${message}`);
+        } else {
+          alert(message);
+        }
+      } else {
+        // Для мобильных устройств используем Toast
+        if (type === 'error') {
+          Alert.alert('Ошибка', message);
+        } else {
+          Alert.alert(message);
+        }
+      }
+    };
 
   const handleLogin = async (): Promise<void> => {
     if (!email || !password) {
-      Alert.alert('Ошибка', 'Пожалуйста, заполните все поля');
+      showNotification('Пожалуйста, заполните все поля','Ошибка')
       return;
     }
 
     try {
       await login(email, password);
+
       router.replace('/main');
     } catch (error: any) {
-      Alert.alert('Ошибка', error.message || 'Произошла ошибка при авторизации');
+      showNotification('Произошла ошибка при авторизации','Ошибка')
     }
   };
 
-    const handleRegister = (): void => {
-    router.push('/register'); // ИЗМЕНЕНО: навигация через expo-router
+  const handleRegister = (): void => {
+    router.push('/register');
   };
 
-
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>#КиноБанда</Text>
-      <Text style={styles.subtitle}>Добро пожаловать!</Text>
+      <View style={styles.container}>
+        <Text style={styles.title}>#КиноБанда</Text>
+        <Text style={styles.subtitle}>Добро пожаловать!</Text>
 
-      <View style={styles.form}>
-        <TextInput
-          style={styles.input}
-          placeholder="Email"
-          value={email}
-          onChangeText={setEmail}
-          keyboardType="email-address"
-          autoCapitalize="none"
-          placeholderTextColor="#888"
-          editable={!isLoading}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Пароль"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-          placeholderTextColor="#888"
-          editable={!isLoading}
-        />
+        <View style={styles.form}>
+          <TextInput
+            style={styles.input}
+            placeholder="Email"
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            placeholderTextColor="#888"
+            editable={!isLoading}
+          />
 
-        <TouchableOpacity 
-          style={[styles.button, isLoading && styles.buttonDisabled]}
-          onPress={handleLogin}
-          disabled={isLoading}
-        >
-          {isLoading ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text style={styles.buttonText}>Войти</Text>
-          )}
-        </TouchableOpacity>
+          <View style={styles.passwordContainer}>
+            <TextInput
+              style={styles.input}
+              placeholder="Пароль"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry={!showPassword}
+              placeholderTextColor="#888"
+              editable={!isLoading}
+            />
+            <TouchableOpacity 
+              style={styles.eyeButton}
+              onPress={togglePasswordVisibility}
+              disabled={isLoading}
+            >
+              <Ionicons 
+                name={showPassword ? "eye-off" : "eye"} 
+                size={20} 
+                color="#fff" 
+              />
+            </TouchableOpacity>
+          </View>
 
-        <TouchableOpacity 
-          style={[styles.registerButton, isLoading && styles.buttonDisabled]}
-          onPress={handleRegister}
-          disabled={isLoading}
-        >
-          <Text style={styles.registerButtonText}>Зарегистрироваться</Text>
-        </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.button, isLoading && styles.buttonDisabled]}
+            onPress={handleLogin}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.buttonText}>Войти</Text>
+            )}
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={[styles.registerButton, isLoading && styles.buttonDisabled]}
+            onPress={handleRegister}
+            disabled={isLoading}
+          >
+            <Text style={styles.registerButtonText}>Нет аккаунта? Зарегистрироваться</Text>
+          </TouchableOpacity>
+        </View>
       </View>
-    </View>
   );
 }
 
@@ -100,23 +140,6 @@ const styles = StyleSheet.create({
     color: 'white',
     textAlign: 'center',
     marginBottom: 30,
-  },
-  statusContainer: {
-    marginBottom: 20,
-    alignItems: 'center',
-  },
-  statusText: {
-    fontSize: 14,
-    fontWeight: '500',
-    textAlign: 'center',
-    marginBottom: 5,
-  },
-  apiHint: {
-    fontSize: 12,
-    color: '#888',
-    textAlign: 'center',
-    fontStyle: 'italic',
-    marginTop: 5,
   },
   form: {
     width: '70%',
@@ -155,5 +178,14 @@ const styles = StyleSheet.create({
     color: '#e50914',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  passwordContainer: {
+    position: 'relative',
+  },
+  eyeButton: {
+    position: 'absolute',
+    right: 15,
+    top: 15,
+    padding: 5,
   },
 });
