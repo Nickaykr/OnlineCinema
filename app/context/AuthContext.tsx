@@ -47,7 +47,6 @@ const loadStoredAuth = async (): Promise<void> => {
     if (storedToken && storedToken !== 'null' && storedToken !== 'undefined' && storedUser) {
       setToken(storedToken);
       
-      // ДОБАВЬТЕ ПРОВЕРКУ ТИПА ДЛЯ storedUser
       try {
         const userData = JSON.parse(storedUser);
         setUser(userData);
@@ -57,7 +56,6 @@ const loadStoredAuth = async (): Promise<void> => {
         setUser(null);
       }
       
-      // Проверяем валидность токена
       try {
         console.log('🔑 Validating token...');
         const response = await authAPI.getMe();

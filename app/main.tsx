@@ -1,16 +1,15 @@
-import { router } from 'expo-router';
-import React from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+// import { router } from 'expo-router';
+import React, { useState } from 'react';
+import { ActivityIndicator, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Header from './components/Header';
-import { useAuth } from './context/AuthContext';
+import MediaCard from './components/MedisCard';
+import { useMovies, useNewMedia } from './hooks/useMedia';
+import { Media } from './types/media.types';
 
 export default function MainScreen() {
-  const { user, logout } = useAuth();
-
-  const handleLogout = async () => {
-    await logout();
-    router.replace('/'); 
-  };
+  const [popularMedia, setPopularMedia] = useState<Media[]>([]);
+  const { media: movies, loading: moviesLoading, error: moviesError } = useMovies(10);
+  const { media: newMedia, loading: newMediaLoading } = useNewMedia(10);
 
   return (
     <View style={styles.container}>
@@ -24,22 +23,36 @@ export default function MainScreen() {
       <ScrollView style={styles.content}>
         <Text style={styles.heroTitle}>Добро пожаловать в мир кино!</Text>
         <Text style={styles.heroSubtitle}>Тысячи фильмов и сериалов</Text>
-       
+
         <View style={styles.popularSection}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Сейчас популярно</Text>
-            <TouchableOpacity>
+            <TouchableOpacity 
+             // onPress={() => router.push('/popular')}
+              style={styles.seeAllButton}
+            >
               <Text style={styles.seeAllText}>Все</Text>
             </TouchableOpacity>
           </View>
 
-          <ScrollView 
-            horizontal 
-            showsHorizontalScrollIndicator={false}
-            style={styles.popularScroll}
-          >
-          
-          </ScrollView>
+          {newMediaLoading ? (
+            <ActivityIndicator size="large" color="#6200ee" />
+          ) : (
+            <ScrollView 
+              horizontal 
+              showsHorizontalScrollIndicator={false}
+              style={styles.popularScroll}
+            >
+              {newMedia.map(item => (
+                <View key={item.media_id} style={styles.cardWrapper}>
+                  <MediaCard media={item} />
+                </View>
+              ))}
+              {newMedia.length === 0 && (
+                <Text style={styles.emptyText}>Нет популярных фильмов</Text>
+              )}
+            </ScrollView>
+          )}
         </View>
       </ScrollView>
     </View>
@@ -53,13 +66,13 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    paddingTop: '5%'
   },
   heroTitle: {
     fontSize: 28,
     fontWeight: 'bold',
     color: '#fff',
     textAlign: 'center',
+    marginTop: Platform.OS === 'web' ? 70 : 100,
     marginBottom: 10,
   },
   heroSubtitle: {
@@ -68,7 +81,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   popularSection: {
-    backgroundColor: '#2a1a45', 
+    backgroundColor: '#2e2b2bff', 
     marginVertical: 20,
     paddingVertical: 25,
     paddingHorizontal: 15,
@@ -86,8 +99,14 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#fff',
   },
-  seeAllText: {
-    color: '#bb86fc',
+  seeAllButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderRadius: 20,
+  },
+    seeAllText: {
+    color: 'white',
     fontSize: 14,
     fontWeight: '500',
   },
@@ -102,51 +121,43 @@ const styles = StyleSheet.create({
     padding: 12,
     alignItems: 'center',
   },
-  movieImage: {
-    width: 80,
-    height: 80,
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 10,
+  horizontalScroll: {
+    paddingLeft: 20,
   },
-  movieEmoji: {
-    fontSize: 40,
+  cardWrapper: {
+    marginRight: 15,
   },
-  movieTitle: {
-    color: '#fff',
-    fontWeight: 'bold',
-    textAlign: 'center',
-    fontSize: 14,
-    marginBottom: 8,
-    height: 40,
-  },
-  movieInfo: {
+  grid: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     justifyContent: 'space-between',
-    width: '100%',
+    paddingHorizontal: 5,
   },
-  movieYear: {
-    color: '#ccc',
-    fontSize: 12,
+  gridCard: {
+    width: '48%', // 2 колонки
+    marginBottom: 15,
   },
-  movieRating: {
-    color: '#ffd700',
-    fontSize: 12,
-    fontWeight: 'bold',
-  },
-
-  regularSection: {
-    backgroundColor: '#1a1a1a', 
-    marginBottom: 20,
-    padding: 20,
-    borderRadius: 12,
-  },
-  comingSoon: {
+  emptyText: {
     color: '#666',
     textAlign: 'center',
+    paddingHorizontal: 20,
     fontStyle: 'italic',
-    marginTop: 10,
+    fontSize: 14,
+  },
+  bottomSpace: {
+    height: 20,
+  },
+   debugButton: {
+    position: 'absolute',
+    top: 100,
+    right: 10,
+    backgroundColor: '#007bff',
+    padding: 10,
+    borderRadius: 5,
+    zIndex: 1000,
+  },
+  debugButtonText: {
+    color: 'white',
+    fontSize: 12,
   },
 });
