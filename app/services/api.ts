@@ -5,7 +5,6 @@ import { storage } from './storage';
 
 const API_BASE_URL = CONFIG.API_BASE_URL;
 
-
 export const api = axios.create({
   baseURL: API_BASE_URL,
   timeout: 10000, 
@@ -163,6 +162,17 @@ export const mediaAPI = {
   // Получить сериалы
   getSeries: async (limit: number = 20): Promise<ApiResponse<Media[]>> => {
     const response = await api.get(`/media?type=series&limit=${limit}`);
+    return response.data;
+  },
+
+  getComingSoon: async (limit: number = 20): Promise<ApiResponse<Media[]>> => {
+    const response = await api.get(`/media/comingSoon`);
+    return response.data;
+  },
+
+  getMediaByGenre: async (genre: string, limit: number = 20): Promise<ApiResponse<Media[]>> => {
+    const encodedGenre = encodeURIComponent(genre);
+    const response = await api.get(`/media/genre/${encodedGenre}?limit=${limit}`);
     return response.data;
   },
 };

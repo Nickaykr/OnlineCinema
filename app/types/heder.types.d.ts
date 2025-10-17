@@ -11,4 +11,4 @@ export interface HeaderIconProps {
   onPress: () => void;
   icon: string;
   testID?: string;
-}
+} 

@@ -3,13 +3,14 @@ import React, { useState } from 'react';
 import { ActivityIndicator, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Header from './components/Header';
 import MediaCard from './components/MedisCard';
-import { useMovies, useNewMedia } from './hooks/useMedia';
+import { useComingSonnMedia, useMediaByGenre, usePopularMedia } from './hooks/useMedia';
 import { Media } from './types/media.types';
 
 export default function MainScreen() {
   const [popularMedia, setPopularMedia] = useState<Media[]>([]);
-  const { media: movies, loading: moviesLoading, error: moviesError } = useMovies(10);
-  const { media: newMedia, loading: newMediaLoading } = useNewMedia(10);
+  const { media: newMedia, loading: newMediaLoading } = usePopularMedia(9);
+  const { media: ComingSoonMedia, loading: ComingSoonLoading } = useComingSonnMedia(9);
+  const { media: ComediaMedia, loading: ComediaLoading } = useMediaByGenre('komediya', 9);
 
   return (
     <View style={styles.container}>
@@ -54,6 +55,69 @@ export default function MainScreen() {
             </ScrollView>
           )}
         </View>
+
+        <View style={styles.popularSection}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Скоро в релизе!</Text>
+            <TouchableOpacity 
+             // onPress={() => router.push('/popular')}
+              style={styles.seeAllButton}
+            >
+              <Text style={styles.seeAllText}>Все</Text>
+            </TouchableOpacity>
+          </View>
+
+          {ComingSoonLoading ? (
+            <ActivityIndicator size="large" color="#6200ee" />
+          ) : (
+            <ScrollView 
+              horizontal 
+              showsHorizontalScrollIndicator={false}
+              style={styles.popularScroll}
+            >
+              {ComingSoonMedia.map(item => (
+                <View key={item.media_id} style={styles.cardWrapper}>
+                  <MediaCard media={item} />
+                </View>
+              ))}
+              {ComingSoonMedia.length === 0 && (
+                <Text style={styles.emptyText}>Нет популярных фильмов</Text>
+              )}
+            </ScrollView>
+          )}
+        </View>
+
+        <View style={styles.popularSection}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Комедии для поднятия настроения</Text>
+            <TouchableOpacity 
+             // onPress={() => router.push('/popular')}
+              style={styles.seeAllButton}
+            >
+              <Text style={styles.seeAllText}>Все</Text>
+            </TouchableOpacity>
+          </View>
+
+          {ComediaLoading ? (
+            <ActivityIndicator size="large" color="#6200ee" />
+          ) : (
+            <ScrollView 
+              horizontal 
+              showsHorizontalScrollIndicator={false}
+              style={styles.popularScroll}
+            >
+              {ComediaMedia.map(item => (
+                <View key={item.media_id} style={styles.cardWrapper}>
+                  <MediaCard media={item} />
+                </View>
+              ))}
+              {ComediaMedia.length === 0 && (
+                <Text style={styles.emptyText}>Нет популярных фильмов</Text>
+              )}
+            </ScrollView>
+          )}
+        </View>
+
       </ScrollView>
     </View>
   );

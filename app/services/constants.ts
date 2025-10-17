@@ -1,4 +1,4 @@
 export const CONFIG = {
-  SERVER_URL: 'http://10.128.34.190:5000',
-  API_BASE_URL: 'http://10.128.34.190:5000/api',
+  SERVER_URL: 'http://10.185.227.43:5000',
+  API_BASE_URL: 'http://10.185.227.43:5000/api',
 };
