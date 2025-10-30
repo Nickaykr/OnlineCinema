@@ -1,16 +1,18 @@
-// import { router } from 'expo-router';
-import React, { useState } from 'react';
+import { router } from 'expo-router';
+import React from 'react';
 import { ActivityIndicator, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Header from './components/Header';
 import MediaCard from './components/MedisCard';
 import { useComingSonnMedia, useMediaByGenre, usePopularMedia } from './hooks/useMedia';
-import { Media } from './types/media.types';
 
 export default function MainScreen() {
-  const [popularMedia, setPopularMedia] = useState<Media[]>([]);
   const { media: newMedia, loading: newMediaLoading } = usePopularMedia(9);
   const { media: ComingSoonMedia, loading: ComingSoonLoading } = useComingSonnMedia(9);
   const { media: ComediaMedia, loading: ComediaLoading } = useMediaByGenre('komediya', 9);
+
+  const handleSeeAll = (category: string, title: string) => {
+    router.push(`/${category}?title=${encodeURIComponent(title)}`);
+  };
 
   return (
     <View style={styles.container}>
@@ -27,9 +29,11 @@ export default function MainScreen() {
 
         <View style={styles.popularSection}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Сейчас популярно</Text>
+            <View style={styles.titleContainer}>
+              <Text style={styles.sectionTitle}>Сейчас популярно</Text>
+            </View>
             <TouchableOpacity 
-             // onPress={() => router.push('/popular')}
+              onPress={() => handleSeeAll('popular', 'Популярные фильмы и сериалы')}
               style={styles.seeAllButton}
             >
               <Text style={styles.seeAllText}>Все</Text>
@@ -58,9 +62,11 @@ export default function MainScreen() {
 
         <View style={styles.popularSection}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Скоро в релизе!</Text>
+            <View style={styles.titleContainer}>
+              <Text style={styles.sectionTitle}>Скоро в релизе!</Text>
+            </View>
             <TouchableOpacity 
-             // onPress={() => router.push('/popular')}
+              onPress={() => handleSeeAll('coming-soon', 'Скоро в приложении')}
               style={styles.seeAllButton}
             >
               <Text style={styles.seeAllText}>Все</Text>
@@ -89,9 +95,11 @@ export default function MainScreen() {
 
         <View style={styles.popularSection}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Комедии для поднятия настроения</Text>
+            <View style={styles.titleContainer}>
+              <Text style={styles.sectionTitle} numberOfLines={2}>Комедии для поднятия настроения</Text>
+            </View>
             <TouchableOpacity 
-             // onPress={() => router.push('/popular')}
+              onPress={() => handleSeeAll('komediya', 'Комедии для поднятия настроения')}
               style={styles.seeAllButton}
             >
               <Text style={styles.seeAllText}>Все</Text>
@@ -153,29 +161,43 @@ const styles = StyleSheet.create({
   },
   sectionHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    justifyContent: 'space-between', 
+    alignItems: 'flex-start', 
     marginBottom: 15,
     paddingHorizontal: 5,
+    maxWidth: '100%',
+  },
+  titleContainer: {
+    flex: 1,
+    marginRight: 15, 
+    justifyContent: 'center',
+    maxWidth: '80%',
   },
   sectionTitle: {
-    fontSize: 22,
+    fontSize: Platform.OS === 'web' ? 24 : 20,
     fontWeight: 'bold',
     color: '#fff',
+    lineHeight: Platform.OS === 'web' ? 28 : 24, 
   },
   seeAllButton: {
     paddingHorizontal: 16,
     paddingVertical: 8,
     backgroundColor: 'rgba(255,255,255,0.1)',
     borderRadius: 20,
+    minWidth: 60,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0, 
+    flexGrow: 0,
   },
-    seeAllText: {
+  seeAllText: {
     color: 'white',
-    fontSize: 14,
+    fontSize: Platform.OS === 'web' ? 20 : 15,
     fontWeight: '500',
   },
   popularScroll: {
     paddingLeft: 5,
+    paddingRight: 20,
   },
   movieCard: {
     width: 140,
@@ -198,7 +220,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 5,
   },
   gridCard: {
-    width: '48%', // 2 колонки
+    width: '48%',
     marginBottom: 15,
   },
   emptyText: {
@@ -210,18 +232,5 @@ const styles = StyleSheet.create({
   },
   bottomSpace: {
     height: 20,
-  },
-   debugButton: {
-    position: 'absolute',
-    top: 100,
-    right: 10,
-    backgroundColor: '#007bff',
-    padding: 10,
-    borderRadius: 5,
-    zIndex: 1000,
-  },
-  debugButtonText: {
-    color: 'white',
-    fontSize: 12,
   },
 });

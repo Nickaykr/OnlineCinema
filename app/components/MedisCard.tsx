@@ -27,8 +27,6 @@ const MovieCard: React.FC<MediaCardProps> = ({ media, onPress, size }) => {
       return `https://via.placeholder.com/300x450/1a1a1a/ffffff?text=${encodeURIComponent(media.title)}`;
     }
     
-    let url = `${SERVER_URL}/${posterPath}`;
-    
     // Если путь уже полный URL
     if (posterPath.startsWith('http')) {
       return posterPath;
@@ -43,12 +41,6 @@ const MovieCard: React.FC<MediaCardProps> = ({ media, onPress, size }) => {
       return `${SERVER_URL}${posterPath}`;
     }
 
-    if (url.endsWith('.webp')) {
-      console.log('🔍 WebP image detected:', url);
-      // Можно добалить логику для fallback на JPG
-    }
-
-    
     // Для любых других случаев
     return `${SERVER_URL}/public/${posterPath}`;
   };
