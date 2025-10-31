@@ -305,7 +305,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: 'center',
     marginTop: Platform.OS === 'web' ? 8 : 6,
-    minWidth: Platform.OS === 'web' ? 120 : 100,
+    width: 150,
   },
   watchButtonText: {
     color: '#fff',

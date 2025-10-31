@@ -1,17 +1,27 @@
 import { router } from 'expo-router';
-import React from 'react';
+import React, { useState } from 'react';
 import { ActivityIndicator, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Header from './components/Header';
 import MediaCard from './components/MedisCard';
+import SideMenu from './components/SideMenu';
 import { useComingSonnMedia, useMediaByGenre, usePopularMedia } from './hooks/useMedia';
 
 export default function MainScreen() {
   const { media: newMedia, loading: newMediaLoading } = usePopularMedia(9);
   const { media: ComingSoonMedia, loading: ComingSoonLoading } = useComingSonnMedia(9);
   const { media: ComediaMedia, loading: ComediaLoading } = useMediaByGenre('komediya', 9);
+  const [isMenuVisible, setIsMenuVisible] = useState(false);
 
   const handleSeeAll = (category: string, title: string) => {
     router.push(`/${category}?title=${encodeURIComponent(title)}`);
+  };
+
+  const handleMenuPress = () => {
+    setIsMenuVisible(true); 
+  };
+
+  const handleCloseMenu = () => {
+    setIsMenuVisible(false); 
   };
 
   return (
@@ -19,8 +29,7 @@ export default function MainScreen() {
 
       <Header
         title="Главная"
-        showSearch={true}
-        showProfile={true}
+        onMenuPress={handleMenuPress}
       />
 
       <ScrollView style={styles.content}>
@@ -127,6 +136,11 @@ export default function MainScreen() {
         </View>
 
       </ScrollView>
+
+      <SideMenu
+        isVisible={isMenuVisible}
+        onClose={handleCloseMenu}
+      />
     </View>
   );
 }

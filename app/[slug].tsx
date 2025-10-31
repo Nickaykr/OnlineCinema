@@ -1,13 +1,37 @@
 import { useLocalSearchParams } from 'expo-router';
-import React from 'react';
+import React, { useState } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Header from './components/Header';
 import MediaCard from './components/horisontalVediaCard';
-import { useMediaByGenre } from './hooks/useMedia';
+import SideMenu from './components/SideMenu';
+import { useComingSonnMedia, useMediaByGenre, usePopularMedia } from './hooks/useMedia';
 
 export default function GenreMediaScreen() {
   const { slug } = useLocalSearchParams();
-  const { media, loading, error } = useMediaByGenre(slug as string, 50);
+  const [isMenuVisible, setIsMenuVisible] = useState(false);
+
+  const handleMenuPress = () => {
+    setIsMenuVisible(true); 
+  };
+
+  const handleCloseMenu = () => {
+    setIsMenuVisible(false); 
+  };
+
+
+  const getMediaData = () => {
+    switch (slug) {
+      case 'popular':
+        return usePopularMedia(50);
+      case 'coming-soon':
+        return useComingSonnMedia(50);
+      default:
+        return useMediaByGenre(slug as string, 50);
+    }
+  };
+
+  const { media, loading, error } = getMediaData();
+
 
   const genreTitles: { [key: string]: string } = {
     'komediya': 'Комедии',
@@ -37,7 +61,10 @@ export default function GenreMediaScreen() {
 
   return (
    <View style={styles.container}>
-      <Header title={title} />
+      <Header 
+        title={title} 
+        onMenuPress={handleMenuPress}
+      />
       
       <ScrollView 
         style={styles.scrollView}
@@ -57,7 +84,13 @@ export default function GenreMediaScreen() {
             </View>
           ))
         )}
+
       </ScrollView>
+
+      <SideMenu
+        isVisible={isMenuVisible}
+        onClose={handleCloseMenu}
+      />
     </View>
   );
 }
@@ -87,10 +120,10 @@ const styles = StyleSheet.create({
     },
     scrollView: {
       flex: 1,
-      marginTop: 60,
     },
     scrollContent: {
       padding: 15,
+      marginTop: 60,
     },
     emptyContainer: {
       flex: 1,

@@ -55,7 +55,6 @@ export const usePopularMedia = (limit: number = 20) => {
       const response = await mediaAPI.getPopularMedia();
       
       if (response.success) {
-        // Применяем лимит на клиенте, если бэкенд не поддерживает
         const limitedMedia = response.data.slice(0, limit);
         setMedia(limitedMedia);
       } else {

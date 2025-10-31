@@ -1,10 +1,5 @@
 import React from 'react';
-import {
-  StatusBar,
-  Text,
-  TouchableOpacity,
-  View
-} from 'react-native';
+import { StatusBar, Text, TouchableOpacity, View } from 'react-native';
 import { HeaderIconProps, HeaderProps } from '../types/heder.types';
 import { styles } from './Header.styles';
 
