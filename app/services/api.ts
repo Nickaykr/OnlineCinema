@@ -12,13 +12,23 @@ export const api = axios.create({
 
 api.interceptors.request.use(
   async (config) => {
-    const token = await storage.getItem('token'); 
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    console.log('🔄 API Request interceptor called');
+    
+    const refreshToken = await storage.getItem('refreshToken');
+    console.log('🔐 Refresh token from storage:', refreshToken ? `${refreshToken.substring(0, 20)}...` : 'NOT FOUND');
+    
+    if (refreshToken) {
+      config.headers.Authorization = `Bearer ${refreshToken}`;
+      console.log('✅ Authorization header set');
+    } else {
+      console.log('❌ No refresh token found in storage');
     }
+    
+    console.log('📨 Final headers:', config.headers);
     return config;
   },
   (error) => {
+    console.error('❌ Request interceptor error:', error);
     return Promise.reject(error);
   }
 );
@@ -27,9 +37,8 @@ api.interceptors.response.use(
   (response) => response,
   async (error) => {
     if (error.response?.status === 401) {
-      // Токен невалидный - удаляем его
-      await storage.removeItem('token'); 
-      await storage.removeItem('userData'); 
+      await storage.removeItem('refreshToken');
+      await storage.removeItem('userData');
     }
     return Promise.reject(error);
   }
@@ -49,7 +58,6 @@ export interface User {
 export interface AuthResponse {
   message: string;
   token: string;
-  accessToken: string; 
   user: User;
 }
 
@@ -95,19 +103,51 @@ export interface MediaFilters {
 export const authAPI = {
   register: async (userData: RegisterData): Promise<{ data: AuthResponse }> => {
     const response = await api.post('/auth/register', userData);
+    
+    console.log('💾 Register response data:', response.data);
+    
+    if (response.data.token) {
+      await storage.setItem('refreshToken', response.data.token);
+      console.log('✅ Token saved to storage');
+    } else {
+      console.log('❌ No token in response');
+    }
+
     return response;
   },
   
   login: async (credentials: LoginCredentials): Promise<{ data: AuthResponse }> => {
     const response = await api.post('/auth/login', credentials);
+    
+      if (response.data.token) {
+      await storage.setItem('refreshToken', response.data.token);
+      console.log('✅ Token saved to storage');
+    } else {
+      console.log('❌ No token in response');
+    }
+    
     return response;
   },
   
-  getMe: (): Promise<{ data: { user: User } }> => 
-    api.get('/auth/me'),
+  refreshToken: async (): Promise<{ data: AuthResponse }> => {
+    const refreshToken = await storage.getItem('refreshToken');
+    const response = await api.post('/auth/refresh', { token: refreshToken });
+    
+    if (response.data.token) {
+      await storage.setItem('refreshToken', response.data.token);
+    }
+    
+    return response;
+  },
   
   logout: async (): Promise<any> => {
-    return api.post('/auth/logout');
+    const refreshToken = await storage.getItem('refreshToken');
+    const response = await api.post('/auth/logout', { token: refreshToken });
+    
+    await storage.removeItem('refreshToken');
+    await storage.removeItem('userData');
+    
+    return response;
   },
 };
 

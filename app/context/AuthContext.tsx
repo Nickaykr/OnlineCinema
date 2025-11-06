@@ -38,7 +38,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 const loadStoredAuth = async (): Promise<void> => {
   try {
     console.log('🔍 Loading stored auth...');
-    const storedToken = await storage.getItem('token');
+    const storedToken = await storage.getItem('refreshToken');
     const storedUser = await storage.getItem('userData');
 
     console.log('💾 Stored token:', storedToken); 
@@ -58,7 +58,7 @@ const loadStoredAuth = async (): Promise<void> => {
       
       try {
         console.log('🔑 Validating token...');
-        const response = await authAPI.getMe();
+          const response = await userAPI.getProfile();
         setUser(response.data.user);
         console.log('✅ Token valid, user:', response.data.user.email);
       } catch (error) {
@@ -92,15 +92,13 @@ const login = async (email: string, password: string): Promise<void> => {
 
     console.log('✅ Login response received');
     
-    // ВРЕМЕННО ИСПОЛЬЗУЙТЕ ANY чтобы обойти проверку типов
     const responseData: any = response.data;
     
     console.log('🔑 AccessToken received:', responseData.accessToken);
     console.log('👤 User received:', responseData.user);
 
-    // ПРОВЕРКА accessToken
-    if (!responseData.accessToken) {
-      console.error('❌ ERROR: AccessToken is undefined!');
+    if (!responseData.token) {
+      console.error('❌ ERROR: Token is undefined!');
       throw new Error('No authentication token received from server');
     }
 
@@ -110,7 +108,7 @@ const login = async (email: string, password: string): Promise<void> => {
     }
 
     // Сохраняем accessToken вместо token
-    await storage.setItem('token', responseData.accessToken);
+    await storage.setItem('token', responseData.token);
     await storage.setItem('userData', JSON.stringify(responseData.user));
     
     setToken(responseData.accessToken);
@@ -168,7 +166,7 @@ const register = async (userData: any): Promise<void> => {
     } catch (error) {
       console.error('Logout error:', error);
     } finally {
-      await storage.removeItem('token');
+      await storage.removeItem('refreshToken');
       await storage.removeItem('userData');
       setToken(null);
       setUser(null);
