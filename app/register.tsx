@@ -32,7 +32,6 @@ export default function RegisterScreen() {
 
   const { register } = useAuth();
 
-   // Функция для форматирования даты без date-fns
   const formatDate = (date: Date): string => {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');

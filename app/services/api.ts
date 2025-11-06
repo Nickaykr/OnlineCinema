@@ -161,7 +161,7 @@ export const mediaAPI = {
 
   // Получить сериалы
   getSeries: async (limit: number = 20): Promise<ApiResponse<Media[]>> => {
-    const response = await api.get(`/media?type=series&limit=${limit}`);
+    const response = await api.get(`/media?type=tv_series&limit=${limit}`);
     return response.data;
   },
 

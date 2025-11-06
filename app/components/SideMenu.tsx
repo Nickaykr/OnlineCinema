@@ -1,3 +1,4 @@
+import { router } from 'expo-router';
 import React from 'react';
 import { Dimensions, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
@@ -79,12 +80,37 @@ const defaultMenuItems: MenuItem[] = [
   {
     label: 'Главная',
     icon: '🏠',
-    onPress: () => console.log('Переход на главную'),
+    onPress: () => router.push('/main'),
   },
   {
-    label: 'Профиль',
+    label: 'Каталог',
+    icon: '🎬',
+    onPress: () => router.push('/catalog'),
+  },
+  {
+    label: 'Киноклубы',
+    icon: '👥',
+    onPress: () => router.push('/clubs'),
+  },
+  {
+    label: 'Списки и Рейтинги',
+    icon: '⭐',
+    onPress: () => router.push('/ratings'),
+  },
+  {
+    label: 'Статистика',
+    icon: '📊',
+    onPress: () => router.push('/statistic'),
+  },
+  {
+    label: 'Аккаунт',
     icon: '👤',
-    onPress: () => console.log('Переход в профиль'),
+    onPress: () => router.push('/account'),
+  },
+  {
+    label: 'О нас',
+    icon: 'ℹ️',
+    onPress: () => router.push('/about'),
   },
 ];
 
