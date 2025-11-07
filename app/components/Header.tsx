@@ -1,3 +1,4 @@
+import { router } from 'expo-router';
 import React from 'react';
 import { StatusBar, Text, TouchableOpacity, View } from 'react-native';
 import { HeaderIconProps, HeaderProps } from '../types/heder.types';
@@ -17,7 +18,7 @@ const Header: React.FC<HeaderProps> = ({
   title,
   onMenuPress = () => {},
   onSearchPress = () => {},
-  onProfilePress = () => {},
+  onProfilePress = () => {router.push('/account')},
   showSearch = true,
   showProfile = true,
 }) => {

@@ -1,16 +1,10 @@
-import { router } from 'expo-router';
 import React, { useState } from 'react';
-import { Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Image, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Header from './components/Header';
 import SideMenu from './components/SideMenu';
-// import { useComingSonnMedia, useMediaByGenre, usePopularMedia } from './hooks/useMedia';
 
 export default function MainScreen() {
   const [isMenuVisible, setIsMenuVisible] = useState(false);
-
-  const handleSeeAll = (category: string, title: string) => {
-    router.push(`/${category}?title=${encodeURIComponent(title)}`);
-  };
 
   const handleMenuPress = () => {
     setIsMenuVisible(true); 
@@ -29,8 +23,46 @@ export default function MainScreen() {
       />
 
       <ScrollView style={styles.content}>
-        <Text style={styles.heroTitle}>Каталог фильмов и сериалов</Text>
-        <Text style={styles.heroSubtitle}>Откройте для себя тысячи произведений со всего мира</Text>
+        <Text style={styles.heroTitle}>Информация о приложениии</Text>
+        <Text style={styles.heroSubtitle}>Переосмысливаем опыт просмотра кино. Вместе.</Text>
+        <Text style={styles.text}>Обычный онлайн-кинотеатр заканчивается на кнопке «play». Наш — только начинается.</Text>
+        <View style={styles.imageContainer}>
+          <Image 
+            source={require('../assets/images/nas.jpg')} 
+            style={styles.contentImage}
+            resizeMode="contain"
+          />
+        </View>
+        <Text style={styles.text}>#КиноБанда — это эксперимент по созданию идеальной платформы для киноманов XXI века. 
+          Мы объединили мощную стриминговую технологию с глубиной социальной сети, чтобы дать вам три ключевых ощущения:</Text>
+        <Text style={styles.text}>Причастность. Вы не просто зритель. Вы — критик, куратор, первооткрыватель и друг. 
+          Ваше мнение формирует общие тренды и помогает другим находить шедевры.</Text>
+        <View style={styles.imageContainer}>
+          <Image 
+            source={require('../assets/images/nas1.jpg')} 
+            style={styles.contentImage}
+            resizeMode="contain"
+          />
+        </View>
+        <Text style={styles.text}>Открытие. Наши алгоритмы и сообщество помогут вам откопать те сокровища, 
+          которые вы бы никогда не нашли в одиночку. От забытого арт-хауса 70-х до главного хита сезона.</Text>
+        <View style={styles.imageContainer}>
+          <Image 
+            source={require('../assets/images/nas2.jpg')} 
+            style={styles.contentImage}
+            resizeMode="contain"
+          />
+        </View>
+         <Text style={styles.text}>Вовлеченность. Киноклубы, списки, совместные просмотры — все это создает живой, 
+          пульсирующий организм, а не просто архив видеоконтента.</Text>
+        <View style={styles.imageContainer}>
+          <Image 
+            source={require('../assets/images/nas3.jpg')} 
+            style={styles.contentImage}
+            resizeMode="contain"
+          />
+        </View>
+        <Text style={styles.heroTitle}>Мы не просто транслируем фильмы. Мы строим культуру.</Text>
       </ScrollView>
 
       <SideMenu
@@ -53,94 +85,38 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: 'bold',
     color: '#fff',
-    textAlign: 'center',
+    marginLeft: Platform.OS === 'web' ? 30 : 100,
     marginTop: Platform.OS === 'web' ? 70 : 100,
     marginBottom: 10,
   },
   heroSubtitle: {
-    fontSize: 16,
-    color: '#ccc',
-    textAlign: 'center',
-  },
-  popularSection: {
-    backgroundColor: '#2e2b2bff', 
-    marginVertical: 20,
-    paddingVertical: 25,
-    paddingHorizontal: 15,
-    borderRadius: 0,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between', 
-    alignItems: 'flex-start', 
-    marginBottom: 15,
-    paddingHorizontal: 5,
-    maxWidth: '100%',
-  },
-  titleContainer: {
-    flex: 1,
-    marginRight: 15, 
-    justifyContent: 'center',
-    maxWidth: '80%',
-  },
-  sectionTitle: {
-    fontSize: Platform.OS === 'web' ? 24 : 20,
-    fontWeight: 'bold',
+    fontSize: 24,
     color: '#fff',
-    lineHeight: Platform.OS === 'web' ? 28 : 24, 
+    marginLeft: Platform.OS === 'web' ? 30 : 100,
   },
-  seeAllButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    borderRadius: 20,
-    minWidth: 60,
+  text: {
+    fontSize: 22,
+    color: '#fff',
+    marginLeft: Platform.OS === 'web' ? 30 : 100,
+    marginTop: Platform.OS === 'web' ? 30 : 100,
+  },
+  imageContainer: {
     alignItems: 'center',
-    justifyContent: 'center',
-    flexShrink: 0, 
-    flexGrow: 0,
+    marginVertical: 30,
   },
-  seeAllText: {
-    color: 'white',
-    fontSize: Platform.OS === 'web' ? 20 : 15,
-    fontWeight: '500',
-  },
-  popularScroll: {
-    paddingLeft: 5,
-    paddingRight: 20,
-  },
-  movieCard: {
-    width: 140,
-    marginRight: 15,
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    borderRadius: 12,
-    padding: 12,
-    alignItems: 'center',
-  },
-  horizontalScroll: {
-    paddingLeft: 20,
-  },
-  cardWrapper: {
-    marginRight: 15,
-  },
-  grid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    paddingHorizontal: 5,
-  },
-  gridCard: {
-    width: '48%',
-    marginBottom: 15,
-  },
-  emptyText: {
-    color: '#666',
-    textAlign: 'center',
-    paddingHorizontal: 20,
-    fontStyle: 'italic',
-    fontSize: 14,
-  },
-  bottomSpace: {
-    height: 20,
+  contentImage: {
+    width: Platform.select({
+      web: 400,
+      ios: 300,
+      android: 300,
+      default: 300
+    }),
+    height: Platform.select({
+      web: 250,
+      ios: 200,
+      android: 200,
+      default: 200
+    }),
+    borderRadius: 10,
   },
 });
