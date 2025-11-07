@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { Dimensions, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Dimensions, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { BarChart, LineChart, PieChart } from 'react-native-chart-kit';
 import Header from './components/Header';
 import SideMenu from './components/SideMenu';
@@ -77,87 +77,89 @@ export default function StatisticsScreen() {
   };
 
   return (
-    <ScrollView style={styles.container}>
-
+    <View style={styles.container}>
       <Header
-        title="Статистика"
-        onMenuPress={handleMenuPress}
+          title="Статистика"
+          onMenuPress={handleMenuPress}
       />
 
-      <Text style={styles.title}>Ваша киностатистика</Text>
-      
-      <View style={styles.statsGrid}>
-        <View style={styles.statCard}>
-          <Text style={styles.statNumber}>145</Text>
-          <Text style={styles.statLabel}>Просмотрено</Text>
+      <ScrollView style={styles.container}>
+
+        
+        <Text style={styles.title}>Ваша киностатистика</Text>
+        
+        <View style={styles.statsGrid}>
+          <View style={styles.statCard}>
+            <Text style={styles.statNumber}>145</Text>
+            <Text style={styles.statLabel}>Просмотрено</Text>
+          </View>
+          <View style={styles.statCard}>
+            <Text style={styles.statNumber}>320ч</Text>
+            <Text style={styles.statLabel}>Время</Text>
+          </View>
         </View>
-        <View style={styles.statCard}>
-          <Text style={styles.statNumber}>320ч</Text>
-          <Text style={styles.statLabel}>Время</Text>
+
+        {/* Линейный график */}
+        <View style={styles.chartSection}>
+          <Text style={styles.chartTitle}>Активность просмотров</Text>
+          <LineChart
+            data={monthlyData}
+            width={chartDimensions.chartWidth} 
+            height={chartDimensions.chartHeight}
+            chartConfig={chartConfig}
+            bezier
+            style={{
+              marginVertical: 8,
+              borderRadius: 16
+            }}
+            withVerticalLabels={true}
+            withHorizontalLabels={true}
+            withVerticalLines={true}
+            withHorizontalLines={true}
+            withInnerLines={true}
+            withOuterLines={true}
+            withShadow={true}
+            withDots={true}
+          />
         </View>
-      </View>
 
-      {/* Линейный график */}
-      <View style={styles.chartSection}>
-        <Text style={styles.chartTitle}>Активность просмотров</Text>
-        <LineChart
-          data={monthlyData}
-          width={chartDimensions.chartWidth} 
-          height={chartDimensions.chartHeight}
-          chartConfig={chartConfig}
-          bezier
-          style={{
-            marginVertical: 8,
-            borderRadius: 16
-          }}
-          withVerticalLabels={true}
-          withHorizontalLabels={true}
-          withVerticalLines={true}
-          withHorizontalLines={true}
-          withInnerLines={true}
-          withOuterLines={true}
-          withShadow={true}
-          withDots={true}
-        />
-      </View>
+        {/* Круговая диаграмма */}
+        <View style={styles.chartSection}>
+          <Text style={styles.chartTitle}>Любимые жанры</Text>
+          <PieChart
+            data={genreData}
+            width={chartDimensions.chartWidth} 
+            height={chartDimensions.chartHeight}
+            chartConfig={chartConfig}
+            accessor="population"
+            backgroundColor="transparent"
+            paddingLeft="15"
+            absolute
+          />
+        </View>
 
-      {/* Круговая диаграмма */}
-      <View style={styles.chartSection}>
-        <Text style={styles.chartTitle}>Любимые жанры</Text>
-        <PieChart
-          data={genreData}
-          width={chartDimensions.chartWidth} 
-          height={chartDimensions.chartHeight}
-          chartConfig={chartConfig}
-          accessor="population"
-          backgroundColor="transparent"
-          paddingLeft="15"
-          absolute
-        />
-      </View>
-
-      {/* Столбчатая диаграмма */}
-      <View style={styles.chartSection}>
-        <Text style={styles.chartTitle}>Просмотры по месяцам</Text>
-        <BarChart
-          data={barData}
-          width={chartDimensions.chartWidth} 
-          height={chartDimensions.chartHeight}
-          yAxisLabel=""        
-          yAxisSuffix=""      
-          chartConfig={chartConfig}
-          style={{  
-            marginVertical: 8,
-            borderRadius: 16
-          }}
-        />
-      </View>
-
+        {/* Столбчатая диаграмма */}
+        <View style={styles.chartSection}>
+          <Text style={styles.chartTitle}>Просмотры по месяцам</Text>
+          <BarChart
+            data={barData}
+            width={chartDimensions.chartWidth} 
+            height={chartDimensions.chartHeight}
+            yAxisLabel=""        
+            yAxisSuffix=""      
+            chartConfig={chartConfig}
+            style={{  
+              marginVertical: 8,
+              borderRadius: 16
+            }}
+          />
+        </View>
+      </ScrollView>
       <SideMenu
-        isVisible={isMenuVisible}
-        onClose={handleCloseMenu}
+          isVisible={isMenuVisible}
+          onClose={handleCloseMenu}
       />
-    </ScrollView>
+    </View>
   );
 }
 
@@ -180,7 +182,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold', 
     color: '#fff', 
     marginBottom: 20, 
-    marginTop: 70,
+    marginTop:  Platform.OS === 'web' ? 70 : 100,
     textAlign: 'center' 
   },
   statsGrid: { 
@@ -210,7 +212,6 @@ const styles = StyleSheet.create({
   },
   chartSection: { 
     backgroundColor: '#1a1a1a', 
-    padding: 16, 
     borderRadius: 12, 
     marginBottom: 16,
     marginHorizontal: 16,

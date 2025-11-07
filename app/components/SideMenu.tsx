@@ -1,8 +1,8 @@
 import { router } from 'expo-router';
 import React from 'react';
-import { Dimensions, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Dimensions, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-const { width } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
 
 interface MenuItem {
   label: string;
@@ -22,6 +22,7 @@ const SideMenu: React.FC<SideMenuProps> = ({
   onClose,
   menuItems = defaultMenuItems 
 }) => {
+
   if (!isVisible) return null;
 
   const handleMenuItemPress = (item: MenuItem) => {
@@ -122,14 +123,16 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    paddingRight: Platform.OS === 'web' ? 0 : 20,
     zIndex: 999,
   },
   menuContainer: {
     position: 'absolute',
-    top: 0,
+    top: Platform.OS === 'web' ? 0 : 20,
     left: 0,
     bottom: 0,
-    width: width * 0.3,
+    width: Platform.OS === 'web' ? width * 0.3 : width * 0.6 ,
+    height: height,
     backgroundColor: 'white',
     zIndex: 1000,
     shadowColor: '#000',
