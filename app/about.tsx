@@ -1,5 +1,6 @@
+import { router } from 'expo-router';
 import React, { useState } from 'react';
-import { Image, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Image, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Header from './components/Header';
 import SideMenu from './components/SideMenu';
 
@@ -63,6 +64,14 @@ export default function MainScreen() {
           />
         </View>
         <Text style={styles.heroTitle}>Мы не просто транслируем фильмы. Мы строим культуру.</Text>
+        <View style={styles.buttonContainer}> 
+          <TouchableOpacity 
+            style={styles.button}
+            onPress={() => router.push('/faq')} 
+          >
+            <Text style={styles.buttonText}>Есть Вопросы? Тут ответы</Text>
+          </TouchableOpacity>
+        </View>
       </ScrollView>
 
       <SideMenu
@@ -118,5 +127,34 @@ const styles = StyleSheet.create({
       default: 200
     }),
     borderRadius: 10,
+  },
+  buttonContainer: {
+    alignItems: 'center', 
+    marginVertical: 30,
+  },
+  button: {
+    backgroundColor: '#e50914',
+    paddingHorizontal: 30,
+    paddingVertical: 15,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minWidth: Platform.select({
+      web: 300,
+      ios: 250,
+      android: 250,
+      default: 250
+    }),
+  },
+  buttonText: {
+    color: '#fff',
+    fontSize: Platform.select({
+      web: 16,
+      ios: 16,
+      android: 16,
+      default: 16
+    }),
+    fontWeight: 'bold',
+    textAlign: 'center',
   },
 });
