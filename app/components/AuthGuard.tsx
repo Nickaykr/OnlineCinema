@@ -1,4 +1,3 @@
-// components/AuthGuard.tsx
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Text, View } from 'react-native';
@@ -16,7 +15,6 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
   });
 
   useEffect(() => {
-    // Редирект только если загрузка завершена, нет пользователя и еще не редиректили
     if (!isLoading && !user && !hasRedirected) {
       console.log('👤 No user, performing one-time redirect to login');
       setHasRedirected(true);
@@ -24,7 +22,6 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
     }
   }, [user, isLoading, hasRedirected, router]);
 
-  // Показываем лоадер во время загрузки
   if (isLoading) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
@@ -34,13 +31,11 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
     );
   }
 
-  // Если есть пользователь - показываем контент
   if (user) {
     console.log('✅ User authenticated, showing content:', user.email);
     return <>{children}</>;
   }
 
-  // Если нет пользователя и уже редиректили - показываем лоадер редиректа
   if (hasRedirected) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>

@@ -1,4 +1,4 @@
-import { FAQCategory } from "../types/faq";
+import { FAQCategory } from "../../types/faq";
 
 export const faqData: FAQCategory[] = [
   {

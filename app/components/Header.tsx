@@ -1,7 +1,7 @@
 import { router } from 'expo-router';
 import React from 'react';
 import { StatusBar, Text, TouchableOpacity, View } from 'react-native';
-import { HeaderIconProps, HeaderProps } from '../types/heder.types';
+import { HeaderIconProps, HeaderProps } from '../../types/heder.types';
 import { styles } from './Header.styles';
 
 const HeaderIcon: React.FC<HeaderIconProps> = ({ onPress, icon, testID }) => (

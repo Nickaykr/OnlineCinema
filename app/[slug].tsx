@@ -4,7 +4,7 @@ import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-nat
 import Header from './components/Header';
 import MediaCard from './components/horisontalVediaCard';
 import SideMenu from './components/SideMenu';
-import { useComingSonnMedia, useMediaByGenre, usePopularMedia } from './hooks/useMedia';
+import { useAnimation, useComingSonnMedia, useMediaByGenre, useMovies, usePopularMedia, useSeries } from './hooks/useMedia';
 
 export default function GenreMediaScreen() {
   const { slug } = useLocalSearchParams();
@@ -25,6 +25,12 @@ export default function GenreMediaScreen() {
         return usePopularMedia(50);
       case 'coming-soon':
         return useComingSonnMedia(50);
+      case 'movies':
+        return useMovies(50);
+      case 'serial':
+        return useSeries(50);
+      case 'animation':
+        return useAnimation(50);
       default:
         return useMediaByGenre(slug as string, 50);
     }
@@ -32,11 +38,13 @@ export default function GenreMediaScreen() {
 
   const { media, loading, error } = getMediaData();
 
-
   const genreTitles: { [key: string]: string } = {
     'komediya': 'Комедии',
     'popular': 'Популярные',
-    'coming-soon': 'Скоро выйдет'
+    'coming-soon': 'Скоро выйдет',
+    'movies': 'Фильмы',
+    'serial': 'Сериалы',
+    'animation': 'Мультфильмы ',
   };
 
   const title = genreTitles[slug as string] || 'Фильмы и сериалы';

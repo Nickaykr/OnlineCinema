@@ -4,12 +4,13 @@ import { ActivityIndicator, Platform, ScrollView, StyleSheet, Text, TouchableOpa
 import Header from './components/Header';
 import MediaCard from './components/MedisCard';
 import SideMenu from './components/SideMenu';
-import { useMovies, useSeries } from './hooks/useMedia';
+import { useAnimation, useMovies, useSeries } from './hooks/useMedia';
 
 export default function MainScreen() {
   const [isMenuVisible, setIsMenuVisible] = useState(false);
   const { media: MovMedia, loading: MovMediaLoading } = useMovies(9);
   const { media: SerMedia, loading: SerLoading } = useSeries(9);
+  const { media: AniMedia, loading: AniLoading } = useAnimation(9);
 
   const handleSeeAll = (category: string, title: string) => {
     router.push(`/${category}?title=${encodeURIComponent(title)}`);
@@ -95,6 +96,39 @@ export default function MainScreen() {
                 </View>
               ))}
               {SerMedia.length === 0 && (
+                <Text style={styles.emptyText}>Нет популярных фильмов</Text>
+              )}
+            </ScrollView>
+          )}
+        </View>
+
+        <View style={styles.popularSection}>
+          <View style={styles.sectionHeader}>
+            <View style={styles.titleContainer}>
+              <Text style={styles.sectionTitle}>Мультфильмы</Text>
+            </View>
+            <TouchableOpacity 
+              onPress={() => handleSeeAll('animation', 'Мультфильмы')}
+              style={styles.seeAllButton}
+            >
+              <Text style={styles.seeAllText}>Все</Text>
+            </TouchableOpacity>
+          </View>
+
+          {AniLoading ? (
+            <ActivityIndicator size="large" color="#6200ee" />
+          ) : (
+            <ScrollView 
+              horizontal 
+              showsHorizontalScrollIndicator={false}
+              style={styles.popularScroll}
+            >
+              {AniMedia.map(item => (
+                <View key={item.media_id} style={styles.cardWrapper}>
+                  <MediaCard media={item} />
+                </View>
+              ))}
+              {AniMedia.length === 0 && (
                 <Text style={styles.emptyText}>Нет популярных фильмов</Text>
               )}
             </ScrollView>

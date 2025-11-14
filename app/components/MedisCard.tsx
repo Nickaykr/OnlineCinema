@@ -7,8 +7,8 @@ import {
   TouchableOpacity,
   View
 } from 'react-native';
+import { Media } from '../../types/media.types';
 import { CONFIG } from '../services/constants';
-import { Media } from '../types/media.types';
 
 interface MediaCardProps {
     media: Media;

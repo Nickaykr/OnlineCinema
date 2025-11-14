@@ -1,20 +1,19 @@
-// screens/FAQScreen.tsx
 import React, { useState } from 'react';
 import {
-    Image,
-    LayoutAnimation,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    UIManager,
-    View
+  Image,
+  LayoutAnimation,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  UIManager,
+  View
 } from 'react-native';
+import { FAQCategory, FAQItem } from '../types/faq';
 import Header from './components/Header';
 import SideMenu from './components/SideMenu';
 import { faqData } from './data/faqData';
-import { FAQCategory, FAQItem } from './types/faq';
 
 // Включение анимации для Android
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {

@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Media } from '../types/media.types';
+import { Media } from '../../types/media.types';
 import { CONFIG } from './constants';
 import { storage } from './storage';
 
@@ -99,6 +99,16 @@ export interface MediaFilters {
   year?: number;
 }
 
+export interface CinemaClub {
+  club_id: number;
+  title: string;
+  description: string;
+  type: 'genre' | 'director' | 'mood' | 'seasonal' | 'trending';
+  cover_image: string;
+  media_count: number;
+  media: Media[];
+}
+
 // Функции API
 export const authAPI = {
   register: async (userData: RegisterData): Promise<{ data: AuthResponse }> => {
@@ -193,15 +203,14 @@ export const mediaAPI = {
     return response.data;
   },
 
-  // Получить фильмы
   getMovies: async (limit: number = 20): Promise<ApiResponse<Media[]>> => {
-    const response = await api.get(`/media?type=movie&limit=${limit}`);
+    const response = await api.get(`/media?type=movie&is_animation=0&limit=${limit}`);
     return response.data;
   },
 
   // Получить сериалы
   getSeries: async (limit: number = 20): Promise<ApiResponse<Media[]>> => {
-    const response = await api.get(`/media?type=tv_series&limit=${limit}`);
+    const response = await api.get(`/media?type=tv_series&is_animation=0&limit=${limit}`);
     return response.data;
   },
 
@@ -215,6 +224,56 @@ export const mediaAPI = {
     const response = await api.get(`/media/genre/${encodedGenre}?limit=${limit}`);
     return response.data;
   },
+
+  getMediaByAnimations: async (limit: number = 20): Promise<ApiResponse<Media[]>> => {
+    const response = await api.get(`/media?is_animation=1&limit=${limit}`);
+    return response.data;
+  },
+};
+
+export const cinemaClubsAPI = {
+  // Получить все киноклубы
+  getAllClubs: async (): Promise<ApiResponse<CinemaClub[]>> => {
+    const response = await api.get('/cinema-clubs?limit=20');
+    return response.data;
+  },
+
+  // Получить киноклубы по типу
+  getClubsByType: async (type: CinemaClub['type']): Promise<ApiResponse<CinemaClub[]>> => {
+    const response = await api.get(`/cinema-clubs?type=${type}&limit=10`);
+    return response.data;
+  },
+
+  // Получить конкретный киноклуб
+  getClubById: async (id: number): Promise<ApiResponse<CinemaClub>> => {
+    const response = await api.get(`/cinema-clubs/${id}`);
+    return response.data;
+  },
+
+  // Получить все секции для главной страницы киноклубов
+  getClubSections: async (): Promise<{
+    genres: CinemaClub[];
+    directors: CinemaClub[];
+    moods: CinemaClub[];
+    seasonal: CinemaClub[];
+    trending: CinemaClub[];
+  }> => {
+    const [genres, directors, moods, seasonal, trending] = await Promise.all([
+      cinemaClubsAPI.getClubsByType('genre'),
+      cinemaClubsAPI.getClubsByType('director'),
+      cinemaClubsAPI.getClubsByType('mood'),
+      cinemaClubsAPI.getClubsByType('seasonal'),
+      cinemaClubsAPI.getClubsByType('trending')
+    ]);
+
+    return {
+      genres: genres.data,
+      directors: directors.data,
+      moods: moods.data,
+      seasonal: seasonal.data,
+      trending: trending.data
+    };
+  }
 };
 
 export const checkEndpoints = async () => {

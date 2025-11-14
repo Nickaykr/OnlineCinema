@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
+import { Media } from '../../types/media.types';
 import { mediaAPI, MediaFilters } from '../services/api';
-import { Media } from '../types/media.types';
 
 // Базовый хук для общих фильтров
 export const useMedia = (filters?: MediaFilters) => {
@@ -326,4 +326,42 @@ export const useSearchMedia = (query: string, limit: number = 20) => {
 // Хук для фильтрации по году
 export const useMediaByYear = (year: number, limit: number = 20) => {
   return useMedia({ year, limit });
+};
+
+// Хук для фильмов (использует специализированный метод)
+export const useAnimation = (limit: number = 20) => {
+  const [media, setMedia] = useState<Media[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchMovies = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      console.log('🎬 Fetching movies');
+      const response = await mediaAPI.getMediaByAnimations(limit);
+      
+      if (response.success) {
+        setMedia(response.data);
+      } else {
+        setError(response.message || 'Ошибка при загрузке фильмов');
+      }
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Ошибка сети');
+      console.error('Error in useMovies:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchMovies();
+  }, [limit]);
+
+  const refetch = () => {
+    fetchMovies();
+  };
+
+  return { media, loading, error, refetch };
 };
