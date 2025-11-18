@@ -12,6 +12,7 @@ import {
 import Header from './components/Header';
 import SideMenu from './components/SideMenu';
 import { CinemaClub, cinemaClubsAPI } from './services/api';
+import { CONFIG } from './services/constants';
 
 export default function CinemaClubsScreen() {
   const [isMenuVisible, setIsMenuVisible] = useState(false);
@@ -23,6 +24,8 @@ export default function CinemaClubsScreen() {
     trending: CinemaClub[];
   } | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const SERVER_URL = CONFIG.SERVER_URL;
 
   const handleMenuPress = () => {
     setIsMenuVisible(true); 
@@ -40,12 +43,28 @@ export default function CinemaClubsScreen() {
     try {
       setLoading(true);
       const data = await cinemaClubsAPI.getClubSections();
+      console.log('📊 Loaded clubs data:', data);
       setSections(data);
     } catch (error) {
       console.error('Error loading cinema clubs:', error);
     } finally {
       setLoading(false);
     }
+  };
+
+  // Функция для исправления URL изображений киноклубов
+  const getClubCoverUrl = (coverPath: string | null, clubTitle: string = ''): string => {
+    if (!coverPath) {
+      return `https://via.placeholder.com/300x200/1a1a1a/ffffff?text=${encodeURIComponent(clubTitle || 'Киноклуб')}`;
+    }
+    
+    if (coverPath.startsWith('http')) {
+      return coverPath;
+    }
+    
+    // Убираем лишние слеши и формируем правильный URL
+    const cleanPath = coverPath.startsWith('/') ? coverPath.slice(1) : coverPath;
+    return `${SERVER_URL}/${cleanPath}`;
   };
 
   const getIcon = (type: string) => {
@@ -59,34 +78,45 @@ export default function CinemaClubsScreen() {
     return icons[type as keyof typeof icons] || '🎬';
   };
 
-  const renderClubCard = (club: CinemaClub) => (
-    <TouchableOpacity 
-      key={club.club_id} 
-      style={styles.clubCard}
-      onPress={() => {
-        // Навигация на страницу киноклуба
-        console.log('Open club:', club.club_id);
-      }}
-    >
-      <Image 
-        source={{ uri: club.cover_image }} 
-        style={styles.clubImage}
-        defaultSource={require('../assets/images/placeholder.jpg')} 
-      />
-      <View style={styles.clubContent}>
-        <Text style={styles.clubTitle} numberOfLines={2}>{club.title}</Text>
-        <Text style={styles.clubDescription} numberOfLines={2}>
-          {club.description}
-        </Text>
-        <View style={styles.clubFooter}>
-          <Text style={styles.mediaCount}>{club.media_count} фильмов</Text>
-          <View style={styles.watchButton}>
-            <Text style={styles.watchButtonText}>Смотреть</Text>
+  const renderClubCard = (club: CinemaClub) => {
+    const coverUrl = getClubCoverUrl(club.cover_image, club.title);
+    
+    console.log('🖼️ Club image debug:', {
+      title: club.title,
+      original: club.cover_image,
+      fixed: coverUrl
+    });
+
+    return (
+      <TouchableOpacity 
+        key={club.club_id} 
+        style={styles.clubCard}
+        onPress={() => {
+          console.log('Open club:', club.club_id);
+        }}
+      >
+        <Image 
+          source={{ uri: coverUrl }} 
+          style={styles.clubImage}
+          defaultSource={require('../assets/images/placeholder.jpg')} 
+          onError={(e) => console.log('❌ Image load error for club:', club.title, 'URL:', coverUrl)}
+          onLoad={() => console.log('✅ Image loaded for club:', club.title)}
+        />
+        <View style={styles.clubContent}>
+          <Text style={styles.clubTitle} numberOfLines={2}>{club.title}</Text>
+          <Text style={styles.clubDescription} numberOfLines={2}>
+            {club.description}
+          </Text>
+          <View style={styles.clubFooter}>
+            <Text style={styles.mediaCount}>{club.media_count} фильмов</Text>
+            <View style={styles.watchButton}>
+              <Text style={styles.watchButtonText}>Смотреть</Text>
+            </View>
           </View>
         </View>
-      </View>
-    </TouchableOpacity>
-  );
+      </TouchableOpacity>
+    );
+  };
 
   const renderSection = (title: string, clubs: CinemaClub[], type: string) => (
     <View style={styles.section} key={type}>

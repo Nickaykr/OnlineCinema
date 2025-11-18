@@ -96,7 +96,7 @@ const defaultMenuItems: MenuItem[] = [
   {
     label: 'Списки и Рейтинги',
     icon: '⭐',
-    onPress: () => router.push('/ratings'),
+    onPress: () => router.push('/ListsAndRatingsScreen'),
   },
   {
     label: 'Статистика',

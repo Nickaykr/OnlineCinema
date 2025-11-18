@@ -234,7 +234,7 @@ export const mediaAPI = {
 export const cinemaClubsAPI = {
   // Получить все киноклубы
   getAllClubs: async (): Promise<ApiResponse<CinemaClub[]>> => {
-    const response = await api.get('/cinema-clubs?limit=20');
+    const response = await api.get(`/cinema-clubs?limit=20`);
     return response.data;
   },
 
