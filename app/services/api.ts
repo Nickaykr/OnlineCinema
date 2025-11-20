@@ -276,27 +276,6 @@ export const cinemaClubsAPI = {
   }
 };
 
-export const checkEndpoints = async () => {
-  const endpoints = [
-    '/auth/me',
-    '/media',
-    '/media?type=movie',
-    '/media?type=series',
-    '/media/new',
-    '/media/popular'
-  ];
 
-  console.log('🔍 Checking available endpoints...');
-  
-  for (const endpoint of endpoints) {
-    try {
-      const response = await api.get(endpoint);
-      console.log(`✅ ${endpoint} - ${response.status}`);
-    } catch (error: any) {
-      console.log(`❌ ${endpoint} - ${error.response?.status || error.message}`);
-    }
-    await new Promise(resolve => setTimeout(resolve, 100)); // Задержка между запросами
-  }
-};
 
 

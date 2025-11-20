@@ -136,7 +136,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#fff',
     textAlign: 'center',
-    marginTop: 60,
+    marginTop: Platform.OS === 'web' ? 30 : 100,
     marginBottom: 10,
   },
   subtitle: {

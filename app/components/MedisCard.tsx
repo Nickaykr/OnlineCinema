@@ -1,3 +1,4 @@
+import { router } from 'expo-router';
 import React from 'react';
 import {
   Dimensions,
@@ -10,6 +11,7 @@ import {
 import { Media } from '../../types/media.types';
 import { CONFIG } from '../services/constants';
 
+
 interface MediaCardProps {
     media: Media;
     onPress?: () => void;
@@ -18,9 +20,14 @@ interface MediaCardProps {
 
 const { width } = Dimensions.get('window');
 
-const MovieCard: React.FC<MediaCardProps> = ({ media, onPress, size }) => {
+const MovieCard: React.FC<MediaCardProps> = ({ media, size }) => {
   const SERVER_URL = CONFIG.SERVER_URL;
   const ASPECT_RATIO = 1.5;
+
+  const handlePress = () => {
+    console.log('🎬 Opening media:', media.media_id, media.title);
+    router.push(`/MediaID/${media.media_id}`);
+  };
 
   const getPosterUrl = (posterPath: string | null): string => {
     if (!posterPath) {
@@ -83,7 +90,7 @@ const MovieCard: React.FC<MediaCardProps> = ({ media, onPress, size }) => {
   return (
     <TouchableOpacity 
       style={[styles.card, { width: cardSize.width }]} 
-      onPress={onPress}
+      onPress={handlePress}
       activeOpacity={0.7}
     >
     {/* Постер с бейджами */}
@@ -130,6 +137,8 @@ const MovieCard: React.FC<MediaCardProps> = ({ media, onPress, size }) => {
         {media.description}
       </Text>
       )}
+
+      
     </View>
   </TouchableOpacity>
   );

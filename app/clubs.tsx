@@ -62,7 +62,6 @@ export default function CinemaClubsScreen() {
       return coverPath;
     }
     
-    // Убираем лишние слеши и формируем правильный URL
     const cleanPath = coverPath.startsWith('/') ? coverPath.slice(1) : coverPath;
     return `${SERVER_URL}/${cleanPath}`;
   };
@@ -225,7 +224,7 @@ const styles = StyleSheet.create({
   },
   heroSection: {
     paddingHorizontal: 20,
-    paddingTop: Platform.OS === 'web' ? 50 : 20,
+    paddingTop: Platform.OS === 'web' ? 50 : 100,
     paddingBottom: 30,
     alignItems: 'center',
   },

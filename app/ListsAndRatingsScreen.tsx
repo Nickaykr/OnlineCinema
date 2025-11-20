@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import {
-    ActivityIndicator,
-    Image,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View
+  ActivityIndicator,
+  Image,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
 } from 'react-native';
 import { Media } from '../types/media.types';
 import Header from './components/Header';
@@ -144,6 +145,12 @@ export default function ListsAndRatingsScreen() {
   const renderTopList = (title: string, media: Media[]) => (
     <View style={styles.topListSection}>
       <Text style={styles.topListTitle}>{title}</Text>
+      <ScrollView 
+        horizontal 
+        showsHorizontalScrollIndicator={false}
+        style={styles.topListScroll}
+        contentContainerStyle={styles.topListScrollContent}
+      >
       {media.map((item, index) => (
         <TouchableOpacity 
           key={item.media_id} 
@@ -164,6 +171,7 @@ export default function ListsAndRatingsScreen() {
           </View>
         </TouchableOpacity>
       ))}
+      </ScrollView>
     </View>
   );
 
@@ -207,6 +215,8 @@ export default function ListsAndRatingsScreen() {
         {/* Топ-10 списки */}
         <View style={styles.topListsContainer}>
           {renderTopList("Топ-10 фильмов", topRated.slice(0, 5))}
+        </View>
+        <View style={styles.topListsContainer}>
           {renderTopList("Самые популярные", mostPopular.slice(0, 5))}
         </View>
 
@@ -246,7 +256,7 @@ const styles = StyleSheet.create({
   },
   heroSection: {
     paddingHorizontal: 20,
-    paddingTop: 20,
+    marginTop: Platform.OS === 'web' ? 70 : 100,
     paddingBottom: 30,
     alignItems: 'center',
   },
@@ -266,7 +276,7 @@ const styles = StyleSheet.create({
   topListsContainer: {
     flexDirection: 'row',
     paddingHorizontal: 10,
-    marginBottom: 30,
+    marginBottom: 10,
   },
   topListSection: {
     flex: 1,
@@ -286,6 +296,9 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 10,
     marginBottom: 8,
+    marginRight: 10,
+    width: 280, 
+    minHeight: 90,
   },
   rankContainer: {
     width: 30,
@@ -424,4 +437,11 @@ const styles = StyleSheet.create({
   bottomSpace: {
     height: 20,
   },
+   topListScroll: {
+    flex: 1,
+  },
+  topListScrollContent: {
+    paddingHorizontal: 5,
+  },
+ 
 });

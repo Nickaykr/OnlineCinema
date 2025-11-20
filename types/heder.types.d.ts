@@ -5,6 +5,7 @@ export interface HeaderProps {
   onProfilePress?: () => void;
   showSearch?: boolean;
   showProfile?: boolean;
+  showBackButton?: boolean;
 }
 
 export interface HeaderIconProps {

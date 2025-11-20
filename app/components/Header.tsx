@@ -21,7 +21,12 @@ const Header: React.FC<HeaderProps> = ({
   onProfilePress = () => {router.push('/account')},
   showSearch = true,
   showProfile = true,
+  showBackButton = false,
 }) => {
+   const handleBackPress = () => {
+    router.back(); 
+  };
+
   return (
     <View style={styles.header}>
       <StatusBar
