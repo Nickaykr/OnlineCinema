@@ -4,7 +4,7 @@ import { storage } from '../services/storage';
 
 interface AuthContextType {
   user: User | null;
-  token: string | null;
+  isAuth: boolean;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (userData: any) => Promise<void>;
@@ -13,6 +13,8 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType>({} as AuthContextType);
+
+export let logoutFromApi: () => void = () => {};
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
@@ -28,8 +30,11 @@ interface AuthProviderProps {
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+
+  useEffect(() => {
+    logoutFromApi = logout;
+  }, []);
 
   useEffect(() => {
     loadStoredAuth();
@@ -37,44 +42,26 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
 const loadStoredAuth = async (): Promise<void> => {
   try {
-    const storedToken = await storage.getItem('refreshToken');
+    const accessToken = await storage.getSecureItem('accessToken');
     const storedUser = await storage.getItem('userData');
 
-    if (storedToken && storedToken !== 'null' && storedToken !== 'undefined' && storedUser) {
-      setToken(storedToken);
-      
-      try {
-        const userData = JSON.parse(storedUser);
-        setUser(userData);
-      } catch (parseError) {
-        console.error('❌ Error parsing user data:', parseError);
-        await storage.removeItem('userData');
-        setUser(null);
+      if (accessToken && storedUser) {
+        setUser(JSON.parse(storedUser));
+        
+        try {
+          const response = await userAPI.getProfile();
+          setUser(response.data.user);
+          await storage.setItem('userData', JSON.stringify(response.data.user));
+        } catch (error) { 
+          console.log('Profile fetch failed, waiting for interceptor');
+        }
       }
-      
-      try {
-        const response = await userAPI.getProfile();
-        setUser(response.data.user);
-        console.log('✅ Token valid, user:', response.data.user.email);
-      } catch (error) {
-        console.error('❌ Token invalid, clearing storage');
-        await storage.removeItem('token');
-        await storage.removeItem('userData');
-        setToken(null);
-        setUser(null);
-      }
-    } else {
-      setToken(null);
-      setUser(null);
-    }
   } catch (error) {
-    console.error('Error loading stored auth:', error);
-    setToken(null);
-    setUser(null);
+    console.error('Error loading auth:', error);
   } finally {
     setIsLoading(false);
-    console.log('✅ Auth loading completed, isLoading:', false);
   }
+
 };
 
 const login = async (email: string, password: string): Promise<void> => {
@@ -82,32 +69,16 @@ const login = async (email: string, password: string): Promise<void> => {
     setIsLoading(true);
     
     const response = await authAPI.login({ email, password });
-    
-    const responseData: any = response.data;
-    
-    if (!responseData.token) {
-      console.error('❌ ERROR: Token is undefined!');
-      throw new Error('No authentication token received from server');
-    }
+    const { accessToken, refreshToken, user: userData } = response.data;
+  
+    await storage.setSecureItem('accessToken', accessToken);
+    await storage.setSecureItem('refreshToken', refreshToken);
+    await storage.setItem('userData', JSON.stringify(userData));
 
-    if (!responseData.user) {
-      console.error('❌ ERROR: User data is undefined!');
-      throw new Error('No user data received from server');
-    }
-
-    await storage.setItem('token', responseData.token);
-    await storage.setItem('userData', JSON.stringify(responseData.user));
-    
-    setToken(responseData.accessToken);
-    setUser(responseData.user);
-    
+    setUser(userData);
+   
   } catch (error: any) {
-    console.error('❌ Login error:', error);
-    
-    await storage.removeItem('token');
-    await storage.removeItem('userData');
-    
-    throw new Error(error.response?.data?.error || error.message || 'Login failed');
+    throw new Error(error.response?.data?.error || 'Login failed');
   } finally {
     setIsLoading(false);
   }
@@ -116,60 +87,49 @@ const login = async (email: string, password: string): Promise<void> => {
 const register = async (userData: any): Promise<void> => {
     try {
       setIsLoading(true);
-      
       const response = await authAPI.register(userData);
+      const { accessToken, refreshToken, user: regUser } = response.data;
 
-      await storage.setItem('token', response.data.token);
-      await storage.setItem('userData', JSON.stringify(response.data.user));
-      
-      setToken(response.data.token);
-      setUser(response.data.user);
-      
+      await storage.setSecureItem('accessToken', accessToken);
+      await storage.setSecureItem('refreshToken', refreshToken);
+      await storage.setItem('userData', JSON.stringify(regUser));
+
+      setUser(regUser);
     } catch (error: any) {
-      console.error('❌ Registration error:', error);
       throw new Error(error.response?.data?.error || 'Registration failed');
     } finally {
       setIsLoading(false);
     }
-  };
+};
 
-  const logout = async (): Promise<void> => {
+
+const logout = async (): Promise<void> => {
     try {
-      if (token) {
-        await authAPI.logout();
-      }
-    } catch (error) {
-      console.error('Logout error:', error);
-    } finally {
-      await storage.removeItem('refreshToken');
-      await storage.removeItem('userData');
-      setToken(null);
-      setUser(null);
-    }
+      await authAPI.logout(); 
+    } catch (e) {}
+    
+    await storage.removeSecureItem('accessToken');
+    await storage.removeSecureItem('refreshToken');
+    await storage.removeItem('userData');
+    setUser(null);
   };
 
   const updateUser = async (userData: UpdateProfileData): Promise<void> => {
-    try {
-      const response = await userAPI.updateProfile(userData);
-      setUser(response.data.user);
-      await storage.setItem('userData', JSON.stringify(response.data.user));
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Ошибка обновления профиля');
-    }
+    const response = await userAPI.updateProfile(userData);
+    setUser(response.data.user);
+    await storage.setItem('userData', JSON.stringify(response.data.user));
   };
 
-  const value: AuthContextType = {
-    user,
-    token,
-    isLoading,
-    login,
-    register,
-    logout,
-    updateUser,
-  };
-
-  return (
-    <AuthContext.Provider value={value}>
+ return (
+    <AuthContext.Provider value={{ 
+        user, 
+        isAuth: !!user, 
+        isLoading, 
+        login, 
+        register, 
+        logout, 
+        updateUser 
+    }}>
       {children}
     </AuthContext.Provider>
   );

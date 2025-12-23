@@ -48,7 +48,9 @@ export default function WelcomeScreen() {
 
       router.replace('/main');
     } catch (error: any) {
-      showNotification('Произошла ошибка при авторизации','Ошибка')
+      const errorMessage = error.message || 'Произошла ошибка при авторизации';
+      showNotification('errorMessage','Ошибка')
+      setPassword('');
     }
   };
 

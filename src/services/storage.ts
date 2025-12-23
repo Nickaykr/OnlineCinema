@@ -1,50 +1,63 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as SecureStore from 'expo-secure-store';
+import { Platform } from 'react-native';
 
-// Универсальное хранилище, работающее на всех платформах
 class UniversalStorage {
-  private isWeb: boolean;
-
-  constructor() {
-    // Более надежная проверка на веб-окружение
-    this.isWeb = typeof document !== 'undefined' && !!document.createElement;
-  }
+  private isWeb = Platform.OS === 'web';
 
   async setItem(key: string, value: string): Promise<void> {
-    if (this.isWeb && typeof localStorage !== 'undefined') {
-      // Веб-версия
+    if (this.isWeb) {
       localStorage.setItem(key, value);
     } else {
-      // Мобильная версия
       await AsyncStorage.setItem(key, value);
     }
   }
 
   async getItem(key: string): Promise<string | null> {
-    if (this.isWeb && typeof localStorage !== 'undefined') {
-      // Веб-версия
+    if (this.isWeb) {
       return localStorage.getItem(key);
     } else {
-      // Мобильная версия
       return AsyncStorage.getItem(key);
+    }
+  }
+  
+
+  async setSecureItem(key: string, value: string): Promise<void> {
+    if (this.isWeb) {
+      localStorage.setItem(key, value);
+    } else {
+      await SecureStore.setItemAsync(key, value);
+    }
+  }
+
+  async getSecureItem(key: string): Promise<string | null> {
+    if (this.isWeb) {
+      return localStorage.getItem(key);
+    } else {
+      return await SecureStore.getItemAsync(key);
+    }
+  }
+
+  async removeSecureItem(key: string): Promise<void> {
+    if (this.isWeb) {
+      localStorage.removeItem(key);
+    } else {
+      await SecureStore.deleteItemAsync(key);
     }
   }
 
   async removeItem(key: string): Promise<void> {
     if (this.isWeb && typeof localStorage !== 'undefined') {
-      // Веб-версия
       localStorage.removeItem(key);
     } else {
-      // Мобильная версия
       await AsyncStorage.removeItem(key);
     }
   }
 
   async clear(): Promise<void> {
     if (this.isWeb && typeof localStorage !== 'undefined') {
-      // Веб-версия
       localStorage.clear();
     } else {
-      // Мобильная версия
       await AsyncStorage.clear();
     }
   }

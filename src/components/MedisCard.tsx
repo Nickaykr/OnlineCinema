@@ -1,13 +1,6 @@
 import { router } from 'expo-router';
 import React from 'react';
-import {
-  Dimensions,
-  Image,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View
-} from 'react-native';
+import { Dimensions, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Media } from '../../types/media.types';
 import { CONFIG } from '../services/constants';
 

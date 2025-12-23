@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { Media } from '../../types/media.types';
+import { logoutFromApi } from '../context/AuthContext';
 import { CONFIG } from './constants';
 import { storage } from './storage';
 
@@ -12,11 +13,11 @@ export const api = axios.create({
 
 api.interceptors.request.use(
   async (config) => {
+  
+    const token = await storage.getSecureItem('accessToken');
     
-    const refreshToken = await storage.getItem('refreshToken');
-    
-    if (refreshToken) {
-      config.headers.Authorization = `Bearer ${refreshToken}`;
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
     } else {
       console.log('❌ No refresh token found in storage');
     }
@@ -32,9 +33,26 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
-    if (error.response?.status === 401) {
-      await storage.removeItem('refreshToken');
-      await storage.removeItem('userData');
+    const originalRequest = error.config;
+
+    // Если получили 401 и это не повторный запрос
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+
+      try {
+        // Пытаемся обновить токен
+        const { data } = await authAPI.refreshToken();
+        
+        // Повторяем изначальный запрос с новым токеном
+        originalRequest.headers.Authorization = `Bearer ${data.accessToken}`;
+        return api(originalRequest);
+      } catch (refreshError) {
+        await storage.removeSecureItem('accessToken');
+        await storage.removeSecureItem('refreshToken');
+        await storage.removeItem('userData');
+        logoutFromApi();
+        return Promise.reject(refreshError);
+      }
     }
     return Promise.reject(error);
   }
@@ -53,7 +71,8 @@ export interface User {
 
 export interface AuthResponse {
   message: string;
-  token: string;
+  accessToken: string;  
+  refreshToken: string;
   user: User;
 }
 
@@ -109,48 +128,45 @@ export interface CinemaClub {
 export const authAPI = {
   register: async (userData: RegisterData): Promise<{ data: AuthResponse }> => {
     const response = await api.post('/auth/register', userData);
+    const { accessToken, refreshToken } = response.data;
     
-    
-    if (response.data.token) {
-      await storage.setItem('refreshToken', response.data.token);
-    } else {
-      console.log('❌ No token in response');
+    if (accessToken && refreshToken) {
+      await storage.setSecureItem('accessToken', accessToken);
+      await storage.setSecureItem('refreshToken', refreshToken);
     }
-
     return response;
   },
   
   login: async (credentials: LoginCredentials): Promise<{ data: AuthResponse }> => {
     const response = await api.post('/auth/login', credentials);
+    const { accessToken, refreshToken } = response.data;
     
-      if (response.data.token) {
-      await storage.setItem('refreshToken', response.data.token);
-    } else {
-      console.log('❌ No token in response');
+    if (accessToken && refreshToken) {
+      await storage.setSecureItem('accessToken', accessToken);
+      await storage.setSecureItem('refreshToken', refreshToken);
     }
     
     return response;
   },
   
   refreshToken: async (): Promise<{ data: AuthResponse }> => {
-    const refreshToken = await storage.getItem('refreshToken');
-    const response = await api.post('/auth/refresh', { token: refreshToken });
+    const refreshToken = await storage.getSecureItem('refreshToken');
+    const response = await axios.post(`${API_BASE_URL}/auth/refresh`, { refreshToken });
     
-    if (response.data.token) {
-      await storage.setItem('refreshToken', response.data.token);
-    }
+    const { accessToken, refreshToken: newRefresh } = response.data;
+    await storage.setSecureItem('accessToken', accessToken);
+    await storage.setSecureItem('refreshToken', newRefresh);
     
     return response;
   },
   
   logout: async (): Promise<any> => {
-    const refreshToken = await storage.getItem('refreshToken');
-    const response = await api.post('/auth/logout', { token: refreshToken });
+    const refreshToken = await storage.getSecureItem('refreshToken');
+    await api.post('/auth/logout', { refreshToken });
     
-    await storage.removeItem('refreshToken');
+    await storage.removeSecureItem('accessToken');
+    await storage.removeSecureItem('refreshToken');
     await storage.removeItem('userData');
-    
-    return response;
   },
 };
 
