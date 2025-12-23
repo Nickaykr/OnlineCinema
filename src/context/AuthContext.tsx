@@ -37,12 +37,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
 const loadStoredAuth = async (): Promise<void> => {
   try {
-    console.log('🔍 Loading stored auth...');
     const storedToken = await storage.getItem('refreshToken');
     const storedUser = await storage.getItem('userData');
-
-    console.log('💾 Stored token:', storedToken); 
-    console.log('💾 Stored user:', storedUser); 
 
     if (storedToken && storedToken !== 'null' && storedToken !== 'undefined' && storedUser) {
       setToken(storedToken);
@@ -57,8 +53,7 @@ const loadStoredAuth = async (): Promise<void> => {
       }
       
       try {
-        console.log('🔑 Validating token...');
-          const response = await userAPI.getProfile();
+        const response = await userAPI.getProfile();
         setUser(response.data.user);
         console.log('✅ Token valid, user:', response.data.user.email);
       } catch (error) {
@@ -69,7 +64,6 @@ const loadStoredAuth = async (): Promise<void> => {
         setUser(null);
       }
     } else {
-      console.log('❌ No stored auth data found');
       setToken(null);
       setUser(null);
     }
@@ -86,17 +80,11 @@ const loadStoredAuth = async (): Promise<void> => {
 const login = async (email: string, password: string): Promise<void> => {
   try {
     setIsLoading(true);
-    console.log('🔐 Attempting login...');
     
     const response = await authAPI.login({ email, password });
-
-    console.log('✅ Login response received');
     
     const responseData: any = response.data;
     
-    console.log('🔑 AccessToken received:', responseData.accessToken);
-    console.log('👤 User received:', responseData.user);
-
     if (!responseData.token) {
       console.error('❌ ERROR: Token is undefined!');
       throw new Error('No authentication token received from server');
@@ -107,20 +95,15 @@ const login = async (email: string, password: string): Promise<void> => {
       throw new Error('No user data received from server');
     }
 
-    // Сохраняем accessToken вместо token
     await storage.setItem('token', responseData.token);
     await storage.setItem('userData', JSON.stringify(responseData.user));
     
     setToken(responseData.accessToken);
     setUser(responseData.user);
-
-    console.log('💾 Auth data saved to storage');
-    console.log('✅ Login successful!');
     
   } catch (error: any) {
     console.error('❌ Login error:', error);
     
-    // Очищаем на случай частичного сохранения
     await storage.removeItem('token');
     await storage.removeItem('userData');
     
@@ -133,21 +116,14 @@ const login = async (email: string, password: string): Promise<void> => {
 const register = async (userData: any): Promise<void> => {
     try {
       setIsLoading(true);
-      console.log('👤 Attempting registration...');
       
       const response = await authAPI.register(userData);
-
-      console.log('✅ Registration response received');
-      console.log('🔑 Token received:', !!response.data.token);
-      console.log('👤 User received:', response.data.user.email);
 
       await storage.setItem('token', response.data.token);
       await storage.setItem('userData', JSON.stringify(response.data.user));
       
       setToken(response.data.token);
       setUser(response.data.user);
-
-      console.log('💾 Auth data saved to storage');
       
     } catch (error: any) {
       console.error('❌ Registration error:', error);
@@ -159,7 +135,6 @@ const register = async (userData: any): Promise<void> => {
 
   const logout = async (): Promise<void> => {
     try {
-      console.log('🚪 Logging out...');
       if (token) {
         await authAPI.logout();
       }
@@ -170,7 +145,6 @@ const register = async (userData: any): Promise<void> => {
       await storage.removeItem('userData');
       setToken(null);
       setUser(null);
-      console.log('✅ Logout completed');
     }
   };
 

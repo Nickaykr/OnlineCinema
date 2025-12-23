@@ -55,11 +55,7 @@ const HorizontalMediaCard: React.FC<HorizontalMediaCardProps> = ({ media, onPres
   };
 
   const handleWatchPress = () => {
-    if (onPress) {
-      onPress();
-    } else {
-      router.push(`/watch/${media.media_id}`);
-    }
+   router.push(`/MediaID/${media.media_id}`);
   };
 
   const getCardSize = () => {
@@ -132,7 +128,6 @@ const HorizontalMediaCard: React.FC<HorizontalMediaCardProps> = ({ media, onPres
           </View>
         </View>
 
-        {/* Контент справа */}
         <View style={styles.content}>
           <View style={styles.titleContainer}>
             <Text style={styles.title} numberOfLines={2}>
@@ -161,19 +156,16 @@ const HorizontalMediaCard: React.FC<HorizontalMediaCardProps> = ({ media, onPres
             </View>
           )}
 
-          {/* Мета-информация */}
           <View style={styles.metaContainer}>
             <Text style={styles.metaText}>{media.release_year}</Text>
             <Text style={styles.metaSeparator}>•</Text>
             <Text style={styles.metaText}>{formatDuration()}</Text>
           </View>
 
-          {/* Описание */}
           <Text style={styles.description} numberOfLines={5}>
             {media.description}
           </Text>
 
-          {/* Кнопка "Смотреть" */}
           <TouchableOpacity 
             style={styles.watchButton}
             onPress={handleWatchPress}

@@ -1,19 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import {
-  ActivityIndicator,
-  Image,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View
-} from 'react-native';
+import { ActivityIndicator, Image, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import Header from '../src/components/Header';
+import SideMenu from '../src/components/SideMenu';
+import { mediaAPI } from '../src/services/api';
+import { CONFIG } from '../src/services/constants';
 import { Media } from '../types/media.types';
-import Header from './components/Header';
-import SideMenu from './components/SideMenu';
-import { mediaAPI } from './services/api';
-import { CONFIG } from './services/constants';
 
 export default function ListsAndRatingsScreen() {
   const [isMenuVisible, setIsMenuVisible] = useState(false);

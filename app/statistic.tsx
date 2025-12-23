@@ -1,8 +1,8 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import { Dimensions, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { BarChart, LineChart, PieChart } from 'react-native-chart-kit';
-import Header from './components/Header';
-import SideMenu from './components/SideMenu';
+import Header from '../src/components/Header';
+import SideMenu from '../src/components/SideMenu';
 
 const { width, height } = Dimensions.get('window');
 

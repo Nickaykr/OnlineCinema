@@ -51,7 +51,6 @@ export const usePopularMedia = (limit: number = 20) => {
       setLoading(true);
       setError(null);
       
-      console.log('🔥 Fetching popular media');
       const response = await mediaAPI.getPopularMedia();
       
       if (response.success) {
@@ -90,11 +89,9 @@ export const useNewMedia = (limit: number = 20) => {
       setLoading(true);
       setError(null);
       
-      console.log('🆕 Fetching new media');
       const response = await mediaAPI.getNewMedia();
       
       if (response.success) {
-        // Применяем лимит на клиенте
         const limitedMedia = response.data.slice(0, limit);
         setMedia(limitedMedia);
       } else {
@@ -129,12 +126,10 @@ export const useComingSonnMedia = (limit: number = 20) => {
     try {
       setLoading(true);
       setError(null);
-      
-      console.log('🆕 Fetching coming soon media');
+     
       const response = await mediaAPI.getComingSoon();
       
       if (response.success) {
-        // Применяем лимит на клиенте
         const limitedMedia = response.data.slice(0, limit);
         setMedia(limitedMedia);
       } else {
@@ -170,7 +165,6 @@ export const useMediaByGenre = (genre: string, limit: number = 20) => {
       setLoading(true);
       setError(null);
       
-      console.log(`🎭 Fetching ${genre} media`);
       const response = await mediaAPI.getMediaByGenre(genre, limit);
       
       if (response.success) {
@@ -210,7 +204,6 @@ export const useMovies = (limit: number = 20) => {
       setLoading(true);
       setError(null);
       
-      console.log('🎬 Fetching movies');
       const response = await mediaAPI.getMovies(limit);
       
       if (response.success) {
@@ -237,7 +230,7 @@ export const useMovies = (limit: number = 20) => {
   return { media, loading, error, refetch };
 };
 
-// Хук для сериалов (использует специализированный метод)
+// Хук для сериалов 
 export const useSeries = (limit: number = 20) => {
   const [media, setMedia] = useState<Media[]>([]);
   const [loading, setLoading] = useState(true);
@@ -291,7 +284,6 @@ export const useMediaById = (id: string) => {
       setLoading(true);
       setError(null);
       
-      console.log('🔍 Fetching media by ID:', id);
       const response = await mediaAPI.getMediaById(id);
       
       if (response.success) {
@@ -328,7 +320,7 @@ export const useMediaByYear = (year: number, limit: number = 20) => {
   return useMedia({ year, limit });
 };
 
-// Хук для фильмов (использует специализированный метод)
+// Хук для фильмов 
 export const useAnimation = (limit: number = 20) => {
   const [media, setMedia] = useState<Media[]>([]);
   const [loading, setLoading] = useState(true);
@@ -339,7 +331,6 @@ export const useAnimation = (limit: number = 20) => {
       setLoading(true);
       setError(null);
       
-      console.log('🎬 Fetching movies');
       const response = await mediaAPI.getMediaByAnimations(limit);
       
       if (response.success) {

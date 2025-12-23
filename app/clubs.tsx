@@ -1,18 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import {
-  ActivityIndicator,
-  Image,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View
-} from 'react-native';
-import Header from './components/Header';
-import SideMenu from './components/SideMenu';
-import { CinemaClub, cinemaClubsAPI } from './services/api';
-import { CONFIG } from './services/constants';
+import { ActivityIndicator, Image, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import Header from '../src/components/Header';
+import SideMenu from '../src/components/SideMenu';
+import { CinemaClub, cinemaClubsAPI } from '../src/services/api';
+import { CONFIG } from '../src/services/constants';
 
 export default function CinemaClubsScreen() {
   const [isMenuVisible, setIsMenuVisible] = useState(false);

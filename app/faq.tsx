@@ -1,19 +1,9 @@
 import React, { useState } from 'react';
-import {
-  Image,
-  LayoutAnimation,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  UIManager,
-  View
-} from 'react-native';
+import { Image, LayoutAnimation, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, UIManager, View } from 'react-native';
+import Header from '../src/components/Header';
+import SideMenu from '../src/components/SideMenu';
+import { faqData } from '../src/data/faqData';
 import { FAQCategory, FAQItem } from '../types/faq';
-import Header from './components/Header';
-import SideMenu from './components/SideMenu';
-import { faqData } from './data/faqData';
 
 // Включение анимации для Android
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {

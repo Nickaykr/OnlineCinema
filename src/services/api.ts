@@ -12,19 +12,15 @@ export const api = axios.create({
 
 api.interceptors.request.use(
   async (config) => {
-    console.log('🔄 API Request interceptor called');
     
     const refreshToken = await storage.getItem('refreshToken');
-    console.log('🔐 Refresh token from storage:', refreshToken ? `${refreshToken.substring(0, 20)}...` : 'NOT FOUND');
     
     if (refreshToken) {
       config.headers.Authorization = `Bearer ${refreshToken}`;
-      console.log('✅ Authorization header set');
     } else {
       console.log('❌ No refresh token found in storage');
     }
     
-    console.log('📨 Final headers:', config.headers);
     return config;
   },
   (error) => {
@@ -114,11 +110,9 @@ export const authAPI = {
   register: async (userData: RegisterData): Promise<{ data: AuthResponse }> => {
     const response = await api.post('/auth/register', userData);
     
-    console.log('💾 Register response data:', response.data);
     
     if (response.data.token) {
       await storage.setItem('refreshToken', response.data.token);
-      console.log('✅ Token saved to storage');
     } else {
       console.log('❌ No token in response');
     }
@@ -131,7 +125,6 @@ export const authAPI = {
     
       if (response.data.token) {
       await storage.setItem('refreshToken', response.data.token);
-      console.log('✅ Token saved to storage');
     } else {
       console.log('❌ No token in response');
     }

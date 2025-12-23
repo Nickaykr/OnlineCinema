@@ -1,10 +1,10 @@
 import { router } from 'expo-router';
 import React, { useState } from 'react';
 import { ActivityIndicator, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import Header from './components/Header';
-import MediaCard from './components/MedisCard';
-import SideMenu from './components/SideMenu';
-import { useAnimation, useMovies, useSeries } from './hooks/useMedia';
+import Header from '../src/components/Header';
+import MediaCard from '../src/components/MedisCard';
+import SideMenu from '../src/components/SideMenu';
+import { useAnimation, useMovies, useSeries } from '../src/hooks/useMedia';
 
 export default function MainScreen() {
   const [isMenuVisible, setIsMenuVisible] = useState(false);

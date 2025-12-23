@@ -1,7 +1,7 @@
 import { Platform, StatusBar, StyleSheet } from 'react-native';
 
 export const styles = StyleSheet.create({
-  header: { 
+  header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -9,19 +9,15 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
     height: Platform.OS === 'android' ? (StatusBar.currentHeight || 0) + 56 : 56,
-    elevation: 4,
-    shadowColor: '#000',
+    
+    boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.25)',
+    elevation: 4, 
+    
     width: '100%',
     position: 'absolute',
     top: 0,
     left: 0,
     zIndex: 1000,
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
   },
   title: {
     flex: 1,
@@ -45,7 +41,6 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
-   // Стили для меню
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
@@ -53,18 +48,12 @@ export const styles = StyleSheet.create({
   },
   menuContainer: {
     backgroundColor: 'white',
-    marginTop: 60, // Под header'ом
+    marginTop: 60, 
     marginHorizontal: 20,
     borderRadius: 12,
     padding: 16,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
+    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.25)',
+    elevation: 5, 
   },
   menuHeader: {
     flexDirection: 'row',

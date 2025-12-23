@@ -1,9 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { ActivityIndicator, Alert, Image, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import Header from './components/Header';
-import SideMenu from './components/SideMenu';
-import { useUser } from './hooks/userAPI';
+import Header from '../src/components/Header';
+import SideMenu from '../src/components/SideMenu';
+import { useUser } from '../src/hooks/userAPI';
 
 // Компонент для аватара по умолчанию
 const DefaultAvatar = ({ size = 80, name }: { size?: number; name?: string }) => (

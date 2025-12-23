@@ -32,7 +32,6 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
   }
 
   if (user) {
-    console.log('✅ User authenticated, showing content:', user.email);
     return <>{children}</>;
   }
 
@@ -44,8 +43,7 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
       </View>
     );
   }
-
-  // На всякий случай - fallback
+  
   return (
     <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
       <ActivityIndicator size="large" color="#007AFF" />

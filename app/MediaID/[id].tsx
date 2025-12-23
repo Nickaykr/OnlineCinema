@@ -1,20 +1,12 @@
 import { AVPlaybackStatus, ResizeMode, Video } from 'expo-av';
 import { useLocalSearchParams } from 'expo-router';
 import React, { useRef, useState } from 'react';
-import {
-  ActivityIndicator,
-  Image,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View
-} from 'react-native';
+import { ActivityIndicator, Image, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
 import WebView from 'react-native-webview';
-import Header from '../components/Header';
-import SideMenu from '../components/SideMenu';
-import { useMediaById } from '../hooks/useMedia';
-import { CONFIG } from '../services/constants';
+import Header from '../../src/components/Header';
+import SideMenu from '../../src/components/SideMenu';
+import { useMediaById } from '../../src/hooks/useMedia';
+import { CONFIG } from '../../src/services/constants';
 
 export default function MediaDetailScreen() {
   const { id } = useLocalSearchParams();
@@ -124,7 +116,6 @@ export default function MediaDetailScreen() {
           </View>
         )}
 
-        {/* Видеоплеер */}
         <View style={styles.videoSection}>
           <Text style={styles.sectionTitle}>Трейлер</Text>
           
@@ -390,14 +381,14 @@ const styles = StyleSheet.create({
     height: 250,
     borderRadius: 8,
   },
-  //Для веба - горизонтальное расположение
+  //Для веба
   heroSectionWeb: {
     marginTop: 70,
     flexDirection: 'row',
     padding: 20,
     alignItems: 'flex-start',
   },
-  // Для мобильных - вертикальное расположение
+  // Для мобильных 
   heroSectionMobile: {
     marginTop: 100,
     flexDirection: 'column',

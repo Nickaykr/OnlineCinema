@@ -10,12 +10,6 @@ interface UseUserReturn {
   updateUser: (userData: UpdateProfileData) => Promise<User>;
 }
 
-const getMockStats = () => ({
-  moviesWatched: 145,
-  hoursWatched: 320,
-  favoriteGenres: 5
-});
-
 export const useUser = (): UseUserReturn => {
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState<boolean>(true);

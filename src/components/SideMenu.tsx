@@ -32,14 +32,12 @@ const SideMenu: React.FC<SideMenuProps> = ({
 
   return (
     <>
-      {/* Затемненный оверлей */}
       <TouchableOpacity 
         style={styles.overlay}
         activeOpacity={1}
         onPress={onClose}
       />
       
-      {/* Боковое меню */}
       <View style={styles.menuContainer}>
         <View style={styles.menuHeader}>
           <Text style={styles.menuTitle}>Меню приложения</Text>

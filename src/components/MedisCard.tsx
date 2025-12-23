@@ -11,7 +11,6 @@ import {
 import { Media } from '../../types/media.types';
 import { CONFIG } from '../services/constants';
 
-
 interface MediaCardProps {
     media: Media;
     onPress?: () => void;
@@ -25,7 +24,6 @@ const MovieCard: React.FC<MediaCardProps> = ({ media, size }) => {
   const ASPECT_RATIO = 1.5;
 
   const handlePress = () => {
-    console.log('🎬 Opening media:', media.media_id, media.title);
     router.push(`/MediaID/${media.media_id}`);
   };
 
@@ -34,21 +32,14 @@ const MovieCard: React.FC<MediaCardProps> = ({ media, size }) => {
       return `https://via.placeholder.com/300x450/1a1a1a/ffffff?text=${encodeURIComponent(media.title)}`;
     }
     
-    // Если путь уже полный URL
-    if (posterPath.startsWith('http')) {
-      return posterPath;
-    }
-    
     if (posterPath.startsWith('public/')) {
       return `${SERVER_URL}/${posterPath}`;
     }
     
-    // Если путь начинается с /public
     if (posterPath.startsWith('/public')) {
       return `${SERVER_URL}${posterPath}`;
     }
 
-    // Для любых других случаев
     return `${SERVER_URL}/public/${posterPath}`;
   };
 
@@ -93,7 +84,6 @@ const MovieCard: React.FC<MediaCardProps> = ({ media, size }) => {
       onPress={handlePress}
       activeOpacity={0.7}
     >
-    {/* Постер с бейджами */}
     <View style={styles.posterContainer}>
 
       <View style={styles.imageBackground}>
@@ -104,14 +94,12 @@ const MovieCard: React.FC<MediaCardProps> = ({ media, size }) => {
         />
       </View>
 
-      {/* Бейдж возрастного рейтинга */}
       {media.age_rating && (
         <View style={styles.ageBadge}>
         < Text style={styles.ageText}>{media.age_rating}</Text>
         </View>
         )}
 
-      {/* Бейдж типа контента */}
       <View style={styles.typeBadge}>
         <Text style={styles.typeText}>
         {media.type === 'movie' ? '🎬' : '📺'}
@@ -119,13 +107,11 @@ const MovieCard: React.FC<MediaCardProps> = ({ media, size }) => {
       </View>
     </View>
 
-    {/* Контент */}
     <View style={styles.content}>
       <Text style={styles.title} numberOfLines={2}>
         {media.title}
       </Text>
 
-      {/* Мета-информация */}
       <View style={styles.metaContainer}>
         <Text style={styles.metaText}>{media.release_year}</Text>
         <Text style={styles.metaSeparator}>•</Text>

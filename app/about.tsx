@@ -1,8 +1,8 @@
 import { router } from 'expo-router';
 import React, { useState } from 'react';
 import { Image, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import Header from './components/Header';
-import SideMenu from './components/SideMenu';
+import Header from '../src/components/Header';
+import SideMenu from '../src/components/SideMenu';
 
 export default function MainScreen() {
   const [isMenuVisible, setIsMenuVisible] = useState(false);

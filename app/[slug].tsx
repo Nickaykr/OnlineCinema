@@ -1,10 +1,10 @@
 import { useLocalSearchParams } from 'expo-router';
 import React, { useState } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
-import Header from './components/Header';
-import MediaCard from './components/horisontalVediaCard';
-import SideMenu from './components/SideMenu';
-import { useAnimation, useComingSonnMedia, useMediaByGenre, useMovies, usePopularMedia, useSeries } from './hooks/useMedia';
+import Header from '../src/components/Header';
+import MediaCard from '../src/components/horisontalVediaCard';
+import SideMenu from '../src/components/SideMenu';
+import { useAnimation, useComingSonnMedia, useMediaByGenre, useMovies, usePopularMedia, useSeries } from '../src/hooks/useMedia';
 
 export default function GenreMediaScreen() {
   const { slug } = useLocalSearchParams();
