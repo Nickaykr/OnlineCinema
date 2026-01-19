@@ -49,7 +49,7 @@ export default function WelcomeScreen() {
       router.replace('/main');
     } catch (error: any) {
       const errorMessage = error.message || 'Произошла ошибка при авторизации';
-      showNotification('errorMessage','Ошибка')
+      showNotification(errorMessage,'Ошибка')
       setPassword('');
     }
   };

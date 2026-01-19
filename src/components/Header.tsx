@@ -35,19 +35,16 @@ const Header: React.FC<HeaderProps> = ({
         translucent={false}
       />
       
-      {/* Левая часть - меню */}
       <HeaderIcon
         onPress={onMenuPress}
         icon="☰"
         testID="menu-button"
       />
       
-      {/* Центральная часть - заголовок */}
       <Text style={styles.title} numberOfLines={1}>
         {title}
       </Text>
       
-      {/* Правая часть - иконки */}
       <View style={styles.rightIcons}>
         {showSearch && (
           <HeaderIcon

@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { Media } from '../../types/media.types';
-import { logoutFromApi } from '../context/AuthContext';
+import { authEvents } from '../services/authEvents';
 import { CONFIG } from './constants';
 import { storage } from './storage';
 
@@ -50,7 +50,7 @@ api.interceptors.response.use(
         await storage.removeSecureItem('accessToken');
         await storage.removeSecureItem('refreshToken');
         await storage.removeItem('userData');
-        logoutFromApi();
+        authEvents.logout();
         return Promise.reject(refreshError);
       }
     }
