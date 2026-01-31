@@ -285,11 +285,11 @@ export const useMediaById = (id: string) => {
       setError(null);
       
       const response = await mediaAPI.getMediaById(id);
-      
-      if (response.success) {
-        setMedia(response.data);
+
+      if (response && response.media_id) {
+        setMedia(response); // Сохраняем весь объект целиком
       } else {
-        setError(response.message || 'Ошибка при загрузке медиа');
+        setError('Медиа-контент не найден');
       }
     } catch (err: any) {
       setError(err.response?.data?.message || 'Ошибка сети');

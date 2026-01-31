@@ -58,6 +58,10 @@ export default function WelcomeScreen() {
     router.push('/register');
   };
 
+  const handleForgotPassword = () => {
+    showNotification('Функция восстановления пароля временно недоступна. Пожалуйста, обратитесь в поддержку.', 'info');
+  };
+
   return (
       <View style={styles.container}>
         <Text style={styles.title}>#КиноБанда</Text>
@@ -116,6 +120,14 @@ export default function WelcomeScreen() {
             disabled={isLoading}
           >
             <Text style={styles.registerButtonText}>Нет аккаунта? Зарегистрироваться</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            onPress={handleForgotPassword} 
+            style={styles.forgotPasswordButton}
+            disabled={isLoading}
+          >
+            <Text style={styles.forgotPasswordText}>Забыли пароль?</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -189,5 +201,15 @@ const styles = StyleSheet.create({
     right: 15,
     top: 15,
     padding: 5,
+  },
+  forgotPasswordButton: {
+    alignSelf: 'center', 
+    marginBottom: 20,
+    marginTop: 5, 
+  },
+  forgotPasswordText: {
+    color: '#888',
+    fontSize: 16,
+    textDecorationLine: 'underline', 
   },
 });

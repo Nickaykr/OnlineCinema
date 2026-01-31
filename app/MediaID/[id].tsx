@@ -1,6 +1,6 @@
 import { AVPlaybackStatus, ResizeMode, Video } from 'expo-av';
 import { useLocalSearchParams } from 'expo-router';
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Image, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
 import WebView from 'react-native-webview';
 import Header from '../../src/components/Header';
@@ -11,11 +11,25 @@ import { CONFIG } from '../../src/services/constants';
 export default function MediaDetailScreen() {
   const { id } = useLocalSearchParams();
   const { media, loading } = useMediaById(id as string);
-  const [isMenuVisible, setIsMenuVisible] = useState(false);
+ 
   const videoRef = useRef<Video>(null); 
   const [status, setStatus] = useState<AVPlaybackStatus | { isPlaying?: boolean }>({});
   const isVKVideo = media?.trailer_url?.includes('vk.com');
   const isWeb = Platform.OS === 'web';
+
+  const [selectedSeason, setSelectedSeason] = useState<any>(null);
+  const [selectedEpisode, setSelectedEpisode] = useState<any>(null);
+  const [isMenuVisible, setIsMenuVisible] = useState(false);
+
+  useEffect(() => {
+    if (media?.seasons && media.seasons.length > 0) {
+      setSelectedSeason(media.seasons[0]);
+      if (media.seasons[0].episodes && media.seasons[0].episodes.length > 0) {
+        setSelectedEpisode(media.seasons[0].episodes[0]);
+      }
+    }
+  }, [media]);
+
 
   const handleMenuPress = () => {
     setIsMenuVisible(true); 
@@ -51,13 +65,21 @@ export default function MediaDetailScreen() {
   if (!media) {
     return (
       <View style={styles.container}>
-        <Header title="Фильм не найден" showBackButton />
+        <Header title="Ошибка" showBackButton />
         <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>Фильм не найден</Text>
+          <Text style={styles.errorText}>Медиа-контент не найден</Text>
         </View>
       </View>
     );
   }
+
+   const currentVideoUrl = media.type === 'tv_series' 
+    ? selectedEpisode?.video_url 
+    : media.video_url;
+
+  const currentTrailerUrl = media.type === 'tv_series'
+    ? selectedSeason?.trailer_url 
+    : media.trailer_url;
 
   return (
     <View style={styles.container}>
@@ -73,11 +95,20 @@ export default function MediaDetailScreen() {
           Platform.OS === 'web' ? styles.heroSectionWeb : styles.heroSectionMobile
         ]}>
           <Image 
-            source={{ uri: getPosterUrl(media.poster_url) }} 
+            source={{ 
+              uri: getPosterUrl(
+                (media.type === 'tv_series' && selectedSeason?.poster_url) 
+                ? selectedSeason.poster_url 
+                : media.poster_url
+              ) 
+            }} 
             style={styles.poster}
           />
           <View style={styles.heroContent }>
-            <Text style={styles.title}>{media.title}</Text>
+            <Text style={styles.title}>
+              {media.title} 
+              {media.type === 'tv_series' && selectedSeason ? ` (${selectedSeason.season_number} сезон)` : ''}
+            </Text>
             <View style={styles.ratingsRow}>
               <Text style={styles.rating}>
                 IMDb: ⭐ {media.imdb_rating || 'N/A'}
@@ -92,6 +123,11 @@ export default function MediaDetailScreen() {
             <Text style={styles.type}>
               {media.type === 'movie' ? 'Фильм' : 'Сериал'}
             </Text>
+            {media.type === 'tv_series' && media.seasons && (
+              <Text style={styles.type}>
+                Сезонов: {media.seasons.length}
+              </Text>
+            )}
             {media.genres && media.genres.length > 0 && (
               <View style={styles.genresContainer}>
                 <Text style={styles.genresLabel}>Жанры:</Text>
@@ -104,7 +140,14 @@ export default function MediaDetailScreen() {
                 </View>
               </View>
             )}
-            <Text style={styles.year}>Год выпуска: {media.release_year}</Text>
+            <Text style={styles.year}>
+              Год: { (media.type === 'tv_series' && selectedSeason?.release_year) 
+                    ? selectedSeason.release_year 
+                    : media.release_year }
+            </Text>
+            {media.type === 'tv_series' && selectedSeason?.episode_count && (
+              <Text style={styles.type}>Серий в сезоне: {selectedSeason.episode_count}</Text>
+            )}
             <Text style={styles.year}>Возрастное ограничение: {media.age_rating}</Text>
           </View>
         </View>
@@ -121,14 +164,18 @@ export default function MediaDetailScreen() {
           
           {isVKVideo && media.trailer_url ? (
             isWeb ? (
-              // Для Web - используем iframe
-              <iframe 
-                src={media.trailer_url}
-                style={styles.iframe}
+               <iframe 
+                src={currentTrailerUrl} 
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  border: 'none',
+                  borderRadius: '8px'
+                }}
                 allowFullScreen
+                title="Video Player"
               />
             ) : (
-              // Для мобильных - WebView
               <View style={styles.webviewContainer}>
                 <WebView
                   source={{ uri: media.trailer_url }}
@@ -158,19 +205,25 @@ export default function MediaDetailScreen() {
         <View style={styles.videoSection}>
           <Text style={styles.sectionTitle}>Смотреть {media.title} онлайн</Text>
           
-          {isVKVideo && media.trailer_url ? (
+          {isVKVideo && media.video_url ? (
             isWeb ? (
-              // Для Web - используем iframe
+              // Для Web
               <iframe 
-                src={media.background_url}
-                style={styles.iframe}
+                src={currentVideoUrl} 
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  border: 'none',
+                  borderRadius: '8px'
+                }}
                 allowFullScreen
+                title="Video Player"
               />
             ) : (
-              // Для мобильных - WebView
+              // Для мобильных 
               <View style={styles.webviewContainer}>
                 <WebView
-                  source={{ uri: media.background_url! }}
+                  source={{ uri: media.video_url! }}
                   style={styles.webview}
                   javaScriptEnabled={true}
                   domStorageEnabled={true}
@@ -178,18 +231,18 @@ export default function MediaDetailScreen() {
                 />
               </View>
             )
-          ) : media?.trailer_url ? (
+          ) : media?.video_url ? (
             <Video
               ref={videoRef}
               style={styles.video}
-              source={{ uri: media.trailer_url }}
+              source={{ uri: media.video_url }}
               useNativeControls
               resizeMode={ResizeMode.CONTAIN}
               onPlaybackStatusUpdate={handlePlaybackStatusUpdate}
             />
           ) : (
             <View style={styles.noVideoContainer}>
-              <Text style={styles.noVideoText}>Трейлер недоступен</Text>
+              <Text style={styles.noVideoText}>Просмотр пока недоступен</Text>
             </View>
           )}
         </View>
@@ -375,11 +428,6 @@ const styles = StyleSheet.create({
   },
   webview: {
     flex: 1,
-  },
-  iframe: {
-    width: '100%',
-    height: 250,
-    borderRadius: 8,
   },
   //Для веба
   heroSectionWeb: {

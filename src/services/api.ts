@@ -195,7 +195,7 @@ export const mediaAPI = {
   },
 
   // Получить медиа по ID
-  getMediaById: async (id: string): Promise<ApiResponse<Media>> => {
+  getMediaById: async (id: string): Promise<Media> => {
     const response = await api.get(`/media/${id}`);
     return response.data;
   },
