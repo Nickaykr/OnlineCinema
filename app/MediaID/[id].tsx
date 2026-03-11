@@ -1,9 +1,10 @@
-import { AVPlaybackStatus, ResizeMode, Video } from 'expo-av';
+import { AVPlaybackStatus, Video } from 'expo-av';
 import { useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Image, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Dimensions, Image, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
 import WebView from 'react-native-webview';
 import Header from '../../src/components/Header';
+import MoviePlayer from '../../src/components/pleer';
 import SideMenu from '../../src/components/SideMenu';
 import { useMediaById } from '../../src/hooks/useMedia';
 import { CONFIG } from '../../src/services/constants';
@@ -20,6 +21,10 @@ export default function MediaDetailScreen() {
   const [selectedSeason, setSelectedSeason] = useState<any>(null);
   const [selectedEpisode, setSelectedEpisode] = useState<any>(null);
   const [isMenuVisible, setIsMenuVisible] = useState(false);
+
+  const { width: screenWidth } = Dimensions.get('window');
+  const VIDEO_WIDTH = screenWidth > 800 ? 800 : screenWidth - 40; 
+  const VIDEO_HEIGHT = (VIDEO_WIDTH * 9) / 16;
 
   useEffect(() => {
     if (media?.seasons && media.seasons.length > 0) {
@@ -81,6 +86,38 @@ export default function MediaDetailScreen() {
     ? selectedSeason?.trailer_url 
     : media.trailer_url;
 
+  const renderExternalPlayer = (url: string | null) => {
+    if (!url) {
+      return (
+        <View style={[styles.playerPlaceholder, { height: VIDEO_HEIGHT }]}>
+          <Text style={styles.noVideoText}>Видео временно недоступно</Text>
+        </View>
+      );
+    }
+
+    return (
+      <View style={[styles.playerContainer, { height: VIDEO_HEIGHT }]}>
+        {Platform.OS === 'web' ? (
+          <iframe
+            src={url}
+            style={{ width: '100%', height: '100%', border: 'none' }}
+            allowFullScreen
+            allow="autoplay; encrypted-media; fullscreen"
+          />
+        ) : (
+          <WebView
+            source={{ uri: url }}
+            style={{ flex: 1, backgroundColor: '#000' }}
+            javaScriptEnabled={true}
+            domStorageEnabled={true}
+            allowsFullscreenVideo={true}
+            allowsInlineMediaPlayback={true} 
+          />
+        )}
+      </View>
+    );
+  };
+
   return (
     <View style={styles.container}>
       <Header 
@@ -89,7 +126,7 @@ export default function MediaDetailScreen() {
         onMenuPress={handleMenuPress}
       />
       
-      <ScrollView style={styles.content}>
+      <ScrollView style={styles.content} contentContainerStyle={styles.scrollContent}>
         <View style={[
           styles.heroSection,
           Platform.OS === 'web' ? styles.heroSectionWeb : styles.heroSectionMobile
@@ -159,95 +196,24 @@ export default function MediaDetailScreen() {
           </View>
         )}
 
-        <View style={styles.videoSection}>
+        <View style={[styles.videoSection, { height: VIDEO_HEIGHT }]}>
           <Text style={styles.sectionTitle}>Трейлер</Text>
-          
-          {isVKVideo && media.trailer_url ? (
-            isWeb ? (
-               <iframe 
-                src={currentTrailerUrl} 
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  border: 'none',
-                  borderRadius: '8px'
-                }}
-                allowFullScreen
-                title="Video Player"
-              />
-            ) : (
-              <View style={styles.webviewContainer}>
-                <WebView
-                  source={{ uri: media.trailer_url }}
-                  style={styles.webview}
-                  javaScriptEnabled={true}
-                  domStorageEnabled={true}
-                  allowsFullscreenVideo={true}
-                />
-              </View>
-            )
-          ) : media?.trailer_url ? (
-            <Video
-              ref={videoRef}
-              style={styles.video}
-              source={{ uri: media.trailer_url }}
-              useNativeControls
-              resizeMode={ResizeMode.CONTAIN}
-              onPlaybackStatusUpdate={handlePlaybackStatusUpdate}
-            />
-          ) : (
-            <View style={styles.noVideoContainer}>
-              <Text style={styles.noVideoText}>Трейлер недоступен</Text>
-            </View>
-          )}
+          {renderExternalPlayer(currentTrailerUrl)}
         </View>
 
         <View style={styles.videoSection}>
           <Text style={styles.sectionTitle}>Смотреть {media.title} онлайн</Text>
-          
-          {isVKVideo && media.video_url ? (
-            isWeb ? (
-              // Для Web
-              <iframe 
-                src={currentVideoUrl} 
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  border: 'none',
-                  borderRadius: '8px'
-                }}
-                allowFullScreen
-                title="Video Player"
-              />
-            ) : (
-              // Для мобильных 
-              <View style={styles.webviewContainer}>
-                <WebView
-                  source={{ uri: media.video_url! }}
-                  style={styles.webview}
-                  javaScriptEnabled={true}
-                  domStorageEnabled={true}
-                  allowsFullscreenVideo={true}
-                />
-              </View>
-            )
-          ) : media?.video_url ? (
-            <Video
-              ref={videoRef}
-              style={styles.video}
-              source={{ uri: media.video_url }}
-              useNativeControls
-              resizeMode={ResizeMode.CONTAIN}
-              onPlaybackStatusUpdate={handlePlaybackStatusUpdate}
-            />
-          ) : (
-            <View style={styles.noVideoContainer}>
-              <Text style={styles.noVideoText}>Просмотр пока недоступен</Text>
-            </View>
-          )}
+          {renderExternalPlayer(currentVideoUrl)}
         </View>
 
+        <View style={styles.videoSection}>
+          <Text style={styles.sectionTitle}>Тест видео</Text>
+          <MoviePlayer kpId="426004" />
+        </View>
+
+
       </ScrollView>
+
       
       <SideMenu
         isVisible={isMenuVisible}
@@ -260,6 +226,9 @@ export default function MediaDetailScreen() {
 
 
 const styles = StyleSheet.create({
+  scrollContent: {
+    paddingBottom: 60, 
+  },
   container: {
     flex: 1,
     backgroundColor: '#0f0f0f',
@@ -341,6 +310,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#fff',
     marginBottom: 12,
+    alignSelf: 'flex-start',
   },
   description: {
     fontSize: 24,
@@ -384,7 +354,9 @@ const styles = StyleSheet.create({
   videoSection: {
     padding: 20,
     borderTopWidth: 1,
+    marginVertical: 20,
     borderTopColor: '#333',
+    alignItems: 'center',
   },
   video: {
     width: '100%',
@@ -443,5 +415,27 @@ const styles = StyleSheet.create({
     padding: 20,
     alignItems: 'center',
   },
-  
+  playerContainer: {
+    width: '100%',
+    maxWidth: 900, 
+    backgroundColor: '#000',
+    borderRadius: 16, // Мягкие углы
+    overflow: 'hidden',
+    elevation: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+  },
+  playerPlaceholder: {
+    width: '100%',
+    maxWidth: 900,
+    backgroundColor: '#1a1a1a',
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#333',
+    borderStyle: 'dashed',
+  },  
 });
