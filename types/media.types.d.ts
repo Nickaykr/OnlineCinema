@@ -1,3 +1,9 @@
+export interface MediaSource {
+  player_name: string;
+  source_type: 'movie' | 'trailer';
+  url: string;
+}
+
 export interface Media {
   media_id: string;
   title: string;
@@ -7,11 +13,10 @@ export interface Media {
   age_rating: string;
   duration: number;
   poster_url: string;
-  
+
+  main_sources?: MediaSource[];
   original_title?: string;
   total_seasons?: number;
-  video_url?: string;
-  trailer_url?: string;
   imdb_rating?: number;
   kinopoisk_rating?: number;
   created_at?: string;
@@ -25,9 +30,9 @@ export interface Episode {
   season_id: number;
   episode_number: number;
   title: string;
+  sources?: MediaSource[];
   description?: string;
   duration?: number;
-  video_url: string; 
   preview_image?: string;
   release_date?: string;
 }

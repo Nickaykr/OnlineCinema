@@ -1,10 +1,8 @@
-import { AVPlaybackStatus, Video } from 'expo-av';
 import { useLocalSearchParams } from 'expo-router';
-import React, { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Dimensions, Image, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, Dimensions, Image, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import WebView from 'react-native-webview';
 import Header from '../../src/components/Header';
-import MoviePlayer from '../../src/components/pleer';
 import SideMenu from '../../src/components/SideMenu';
 import { useMediaById } from '../../src/hooks/useMedia';
 import { CONFIG } from '../../src/services/constants';
@@ -12,29 +10,30 @@ import { CONFIG } from '../../src/services/constants';
 export default function MediaDetailScreen() {
   const { id } = useLocalSearchParams();
   const { media, loading } = useMediaById(id as string);
- 
-  const videoRef = useRef<Video>(null); 
-  const [status, setStatus] = useState<AVPlaybackStatus | { isPlaying?: boolean }>({});
-  const isVKVideo = media?.trailer_url?.includes('vk.com');
-  const isWeb = Platform.OS === 'web';
 
   const [selectedSeason, setSelectedSeason] = useState<any>(null);
   const [selectedEpisode, setSelectedEpisode] = useState<any>(null);
   const [isMenuVisible, setIsMenuVisible] = useState(false);
+  const [selectedSource, setSelectedSource] = useState<any>(null);
 
   const { width: screenWidth } = Dimensions.get('window');
   const VIDEO_WIDTH = screenWidth > 800 ? 800 : screenWidth - 40; 
   const VIDEO_HEIGHT = (VIDEO_WIDTH * 9) / 16;
 
   useEffect(() => {
-    if (media?.seasons && media.seasons.length > 0) {
-      setSelectedSeason(media.seasons[0]);
-      if (media.seasons[0].episodes && media.seasons[0].episodes.length > 0) {
-        setSelectedEpisode(media.seasons[0].episodes[0]);
+    if (media) {
+      // Если это сериал, берем источники из эпизода, если фильм - из main_sources
+      const sources = media.type === 'tv_series' 
+        ? selectedEpisode?.sources 
+        : media.main_sources;
+
+      if (sources && sources.length > 0) {
+        setSelectedSource(sources[0]);
+      } else {
+        setSelectedSource(null);
       }
     }
-  }, [media]);
-
+  }, [media, selectedEpisode]);
 
   const handleMenuPress = () => {
     setIsMenuVisible(true); 
@@ -51,10 +50,6 @@ export default function MediaDetailScreen() {
     if (posterPath.startsWith('http')) return posterPath;
     if (posterPath.startsWith('/')) return `${SERVER_URL}${posterPath}`;
     return `${SERVER_URL}/${posterPath}`;
-  };
-
-  const handlePlaybackStatusUpdate = (playbackStatus: AVPlaybackStatus) => {
-    setStatus(playbackStatus);
   };
 
   if (loading) {
@@ -78,13 +73,15 @@ export default function MediaDetailScreen() {
     );
   }
 
-   const currentVideoUrl = media.type === 'tv_series' 
-    ? selectedEpisode?.video_url 
-    : media.video_url;
+  // Фильтруем основные плееры (фильм или серия)
+  const videoSources = media.type === 'tv_series' 
+    ? selectedEpisode?.sources?.filter((s: any) => s.source_type !== 'trailer')
+    : media.main_sources?.filter((s: any) => s.source_type !== 'trailer');
 
-  const currentTrailerUrl = media.type === 'tv_series'
-    ? selectedSeason?.trailer_url 
-    : media.trailer_url;
+  // Фильтруем только трейлеры
+  const trailerSource = media.type === 'tv_series'
+    ? selectedSeason?.sources?.filter((s: any) => s.source_type === 'trailer') // Если трейлер у сезона
+    : media.main_sources?.filter((s: any) => s.source_type === 'trailer');
 
   const renderExternalPlayer = (url: string | null) => {
     if (!url) {
@@ -114,6 +111,32 @@ export default function MediaDetailScreen() {
             allowsInlineMediaPlayback={true} 
           />
         )}
+      </View>
+    );
+  };
+
+  const renderSourcePicker = (sources: any[], currentSource: any, onSelect: (s: any) => void, label: string) => {
+    if (!sources || sources.length <= 1) return null;
+
+    return (
+      <View style={styles.pickerContainer}>
+        <Text style={styles.pickerLabel}>{label}:</Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.pickerScroll}>
+          {sources.map((source, index) => (
+            <TouchableOpacity
+              key={index}
+              style={[
+                styles.pickerBtn, 
+                currentSource?.url === source.url && styles.pickerBtnActive
+              ]}
+              onPress={() => onSelect(source)}
+            >
+              <Text style={styles.pickerBtnText}>
+                {source.player_name?.toUpperCase()}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
       </View>
     );
   };
@@ -196,22 +219,30 @@ export default function MediaDetailScreen() {
           </View>
         )}
 
-        <View style={[styles.videoSection, { height: VIDEO_HEIGHT }]}>
-          <Text style={styles.sectionTitle}>Трейлер</Text>
-          {renderExternalPlayer(currentTrailerUrl)}
-        </View>
+        {trailerSource && (
+          <View style={styles.videoSection}>
+            <Text style={styles.sectionTitle}>Официальный трейлер</Text>
+            {renderExternalPlayer(trailerSource.url)}
+          </View>
+        )}
 
         <View style={styles.videoSection}>
-          <Text style={styles.sectionTitle}>Смотреть {media.title} онлайн</Text>
-          {renderExternalPlayer(currentVideoUrl)}
+          <Text style={styles.sectionTitle}>
+            {media.type === 'tv_series' ? `Смотреть: ${selectedEpisode?.title}` : 'Смотреть онлайн'}
+          </Text>
+          
+          {renderSourcePicker(videoSources, selectedSource, setSelectedSource, "Выберите плеер")}
+
+          <View style={styles.playerCenteredWrapper}>
+            {selectedSource ? (
+              renderExternalPlayer(selectedSource.url)
+            ) : (
+              <View style={styles.playerPlaceholder}>
+                <Text style={styles.noVideoText}>Плееры еще не добавлены</Text>
+              </View>
+            )}
+          </View>
         </View>
-
-        <View style={styles.videoSection}>
-          <Text style={styles.sectionTitle}>Тест видео</Text>
-          <MoviePlayer kpId="426004" />
-        </View>
-
-
       </ScrollView>
 
       
@@ -355,12 +386,13 @@ const styles = StyleSheet.create({
     padding: 20,
     borderTopWidth: 1,
     marginVertical: 20,
+    height: '50%',
     borderTopColor: '#333',
     alignItems: 'center',
   },
   video: {
     width: '100%',
-    height: 250,
+    height: '100%',
     borderRadius: 8,
     backgroundColor: '#000',
   },
@@ -438,4 +470,42 @@ const styles = StyleSheet.create({
     borderColor: '#333',
     borderStyle: 'dashed',
   },  
+  pickerContainer: {
+    width: '100%',
+    marginBottom: 15,
+    paddingHorizontal: 10,
+  },
+  pickerLabel: {
+    color: '#999',
+    fontSize: 14,
+    marginBottom: 8,
+    marginLeft: 5,
+  },
+  pickerScroll: {
+    gap: 10,
+    paddingBottom: 5,
+  },
+  pickerBtn: {
+    backgroundColor: '#1a1a1a',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#333',
+  },
+  pickerBtnActive: {
+    backgroundColor: '#e50914', // Цвет Netflix
+    borderColor: '#e50914',
+  },
+  pickerBtnText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  playerCenteredWrapper: {
+    width: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 10,
+  },
 });
