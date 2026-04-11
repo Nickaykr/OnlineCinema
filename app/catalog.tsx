@@ -45,7 +45,7 @@ export default function MainScreen() {
               onPress={() => handleSeeAll('movies', 'Фильмы')}
               style={styles.seeAllButton}
             >
-              <Text style={styles.seeAllText}>Все</Text>
+            <Text style={styles.seeAllText}>Все</Text>
             </TouchableOpacity>
           </View>
 
@@ -58,8 +58,11 @@ export default function MainScreen() {
               style={styles.popularScroll}
             >
               {MovMedia.map(item => (
-                <View key={item.media_id} style={styles.cardWrapper}>
-                  <MediaCard media={item} />
+                <View key={item.season_id} style={styles.cardWrapper}>
+                  <MediaCard 
+                    media={item}  
+                    season={item} 
+                  />
                 </View>
               ))}
               {MovMedia.length === 0 && (
@@ -91,8 +94,11 @@ export default function MainScreen() {
               style={styles.popularScroll}
             >
               {SerMedia.map(item => (
-                <View key={item.media_id} style={styles.cardWrapper}>
-                  <MediaCard media={item} />
+                 <View key={item.season_id} style={styles.cardWrapper}>
+                  <MediaCard 
+                    media={item}  
+                    season={item} 
+                  />
                 </View>
               ))}
               {SerMedia.length === 0 && (
@@ -124,8 +130,11 @@ export default function MainScreen() {
               style={styles.popularScroll}
             >
               {AniMedia.map(item => (
-                <View key={item.media_id} style={styles.cardWrapper}>
-                  <MediaCard media={item} />
+                <View key={item.season_id} style={styles.cardWrapper}>
+                  <MediaCard 
+                    media={item}  
+                    season={item} 
+                  />
                 </View>
               ))}
               {AniMedia.length === 0 && (

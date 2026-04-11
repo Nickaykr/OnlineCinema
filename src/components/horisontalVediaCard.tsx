@@ -1,23 +1,25 @@
 import { router } from 'expo-router';
 import React from 'react';
 import { Dimensions, Image, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { Media } from '../../types/media.types';
+import { MediaRelease } from '../../types/media.types';
 import { CONFIG } from '../services/constants';
 
 interface HorizontalMediaCardProps {
-    media: Media;
+    MediaRelease: MediaRelease
     onPress?: () => void;
     size?: 'small' | 'medium' | 'large';
 }
 
 const { width } = Dimensions.get('window');
 
-const HorizontalMediaCard: React.FC<HorizontalMediaCardProps> = ({ media, onPress, size }) => {
+const HorizontalMediaCard: React.FC<HorizontalMediaCardProps> = ({ MediaRelease, onPress, size }) => {
   const SERVER_URL = CONFIG.SERVER_URL;
+
+  const item = MediaRelease as unknown as MediaRelease;
 
   const getPosterUrl = (posterPath: string | null): string => {
     if (!posterPath) {
-      return `https://via.placeholder.com/300x450/1a1a1a/ffffff?text=${encodeURIComponent(media.title)}`;
+      return `https://via.placeholder.com/300x450/1a1a1a/ffffff?text=${encodeURIComponent(item.title)}`;
     }
     
     if (posterPath.startsWith('http')) {
@@ -35,19 +37,19 @@ const HorizontalMediaCard: React.FC<HorizontalMediaCardProps> = ({ media, onPres
     return `${SERVER_URL}/public/${posterPath}`;
   };
 
-  const posterUrl = getPosterUrl(media.poster_url);
+  const posterUrl = getPosterUrl(item.poster_url);
 
   const formatDuration = () => {
-      if (media.type === 'series') {
-          return media.total_seasons ? `${media.total_seasons} сезонов` : 'Сериал';
+      if (item.type === 'tv_series') {
+          return item.total_seasons ? `${item.total_seasons} сезонов` : 'Сериал';
       }
-      const hours = Math.floor(media.duration / 60);
-      const mins = media.duration % 60;
+      const hours = Math.floor(item.duration / 60);
+      const mins = item.duration % 60;
       return hours > 0 ? `${hours}ч ${mins}м` : `${mins}мин`;
   };
 
   const handleWatchPress = () => {
-   router.push(`/MediaID/${media.media_id}`);
+   router.push(`/MediaID/${item.media_id}`);
   };
 
   const getCardSize = () => {
@@ -107,15 +109,15 @@ const HorizontalMediaCard: React.FC<HorizontalMediaCardProps> = ({ media, onPres
           />
           
           {/* Бейджи */}
-          {media.age_rating && (
+          {item.age_rating && (
             <View style={styles.ageBadge}>
-              <Text style={styles.ageText}>{media.age_rating}</Text>
+              <Text style={styles.ageText}>{item.age_rating}</Text>
             </View>
           )}
           
           <View style={styles.typeBadge}>
             <Text style={styles.typeText}>
-              {media.type === 'movie' ? '🎬' : '📺'}
+              {item.type === 'movie' ? '🎬' : '📺'}
             </Text>
           </View>
         </View>
@@ -123,39 +125,39 @@ const HorizontalMediaCard: React.FC<HorizontalMediaCardProps> = ({ media, onPres
         <View style={styles.content}>
           <View style={styles.titleContainer}>
             <Text style={styles.title} numberOfLines={2}>
-              {media.title}
+              {item.title}
             </Text>
           </View>
 
-          {(media.imdb_rating || media.kinopoisk_rating) && (
+          {(item.imdb_rating || item.kinopoisk_rating) && (
             <View style={styles.ratingContainer}>
-              {media.imdb_rating && (
+              {item.imdb_rating && (
                 <View style={styles.ratingItem}>
                   <Text style={styles.ratingLabel}>
                     {Platform.OS === 'web' ? 'Рейтинг IMDb' : 'IMDb'}
                   </Text>
-                  <Text style={styles.ratingValue}>{media.imdb_rating}</Text>
+                  <Text style={styles.ratingValue}>{item.imdb_rating}</Text>
                 </View>
               )}
-              {media.kinopoisk_rating && (
+              {item.kinopoisk_rating && (
                 <View style={styles.ratingItem}>
                   <Text style={styles.ratingLabel}>
                     {Platform.OS === 'web' ? 'Рейтинг Кинопоиск' : 'КП'}
                   </Text>
-                  <Text style={styles.ratingValue}>{media.kinopoisk_rating}</Text>
+                  <Text style={styles.ratingValue}>{item.kinopoisk_rating}</Text>
                 </View>
               )}
             </View>
           )}
 
           <View style={styles.metaContainer}>
-            <Text style={styles.metaText}>{media.release_year}</Text>
+            <Text style={styles.metaText}>{item.release_year}</Text>
             <Text style={styles.metaSeparator}>•</Text>
             <Text style={styles.metaText}>{formatDuration()}</Text>
           </View>
 
           <Text style={styles.description} numberOfLines={5}>
-            {media.description}
+            {item.description}
           </Text>
 
           <TouchableOpacity 

@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Media } from '../../types/media.types';
+import { Media, MediaRelease } from '../../types/media.types';
 import { authEvents } from '../services/authEvents';
 import { CONFIG } from './constants';
 import { storage } from './storage';
@@ -180,7 +180,7 @@ export const userAPI = {
 
 export const mediaAPI = {
   // Получить все медиа с фильтрами
-  getMedia: async (filters?: MediaFilters): Promise<ApiResponse<Media[]>> => {
+  getMedia: async (filters?: MediaFilters): Promise<ApiResponse<MediaRelease[]>> => {
     const params = new URLSearchParams();
     
     if (filters?.type) params.append('type', filters.type);
@@ -195,46 +195,46 @@ export const mediaAPI = {
   },
 
   // Получить медиа по ID
-  getMediaById: async (id: string): Promise<Media> => {
+  getMediaById: async (id: string): Promise<MediaRelease> => {
     const response = await api.get(`/media/${id}`);
     return response.data;
   },
 
   // Получить популярные медиа
-  getPopularMedia: async (): Promise<ApiResponse<Media[]>> => {
+  getPopularMedia: async (): Promise<ApiResponse<MediaRelease[]>> => {
     const response = await api.get('/media/popular');
     return response.data;
   },
 
   // Получить новинки
-  getNewMedia: async (): Promise<ApiResponse<Media[]>> => {
-    const response = await api.get('/media/new');
+  getNewMedia: async (): Promise<ApiResponse<MediaRelease[]>> => {
+    const response = await api.get('/media/filter?status=release');
     return response.data;
   },
 
-  getMovies: async (limit: number = 20): Promise<ApiResponse<Media[]>> => {
+  getMovies: async (limit: number = 20): Promise<ApiResponse<MediaRelease[]>> => {
     const response = await api.get(`/media?type=movie&is_animation=0&limit=${limit}`);
     return response.data;
   },
 
   // Получить сериалы
-  getSeries: async (limit: number = 20): Promise<ApiResponse<Media[]>> => {
+  getSeries: async (limit: number = 20): Promise<ApiResponse<MediaRelease[]>> => {
     const response = await api.get(`/media?type=tv_series&is_animation=0&limit=${limit}`);
     return response.data;
   },
 
-  getComingSoon: async (limit: number = 20): Promise<ApiResponse<Media[]>> => {
-    const response = await api.get(`/media/comingSoon`);
+  getComingSoon: async (limit: number = 20): Promise<ApiResponse<MediaRelease[]>> => {
+    const response = await api.get(`/media/filter?status=Announced`);
     return response.data;
   },
 
-  getMediaByGenre: async (genre: string, limit: number = 20): Promise<ApiResponse<Media[]>> => {
+  getMediaByGenre: async (genre: string, limit: number = 20): Promise<ApiResponse<MediaRelease[]>> => {
     const encodedGenre = encodeURIComponent(genre);
     const response = await api.get(`/media/genre/${encodedGenre}?limit=${limit}`);
     return response.data;
   },
 
-  getMediaByAnimations: async (limit: number = 20): Promise<ApiResponse<Media[]>> => {
+  getMediaByAnimations: async (limit: number = 20): Promise<ApiResponse<MediaRelease[]>> => {
     const response = await api.get(`/media?is_animation=1&limit=${limit}`);
     return response.data;
   },

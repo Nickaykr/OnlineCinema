@@ -1,28 +1,30 @@
 import { router } from 'expo-router';
 import React from 'react';
 import { Dimensions, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { Media } from '../../types/media.types';
+import { MediaRelease } from '../../types/media.types';
 import { CONFIG } from '../services/constants';
 
 interface MediaCardProps {
-    media: Media;
+    MediaRelease: MediaRelease
     onPress?: () => void;
     size?: 'small' | 'medium' | 'large';
 }
 
 const { width } = Dimensions.get('window');
 
-const MovieCard: React.FC<MediaCardProps> = ({ media, size }) => {
+const MovieCard: React.FC<MediaCardProps> = ({ MediaRelease, size }) => {
   const SERVER_URL = CONFIG.SERVER_URL;
   const ASPECT_RATIO = 1.5;
 
+  const item = MediaRelease as unknown as MediaRelease;
+
   const handlePress = () => {
-    router.push(`/MediaID/${media.media_id}`);
+    router.push(`/MediaID/${item.season_id}`);
   };
 
   const getPosterUrl = (posterPath: string | null): string => {
     if (!posterPath) {
-      return `https://via.placeholder.com/300x450/1a1a1a/ffffff?text=${encodeURIComponent(media.title)}`;
+      return `https://via.placeholder.com/300x450/1a1a1a/ffffff?text=${encodeURIComponent(item.title)}`;
     }
     
     if (posterPath.startsWith('public/')) {
@@ -36,14 +38,14 @@ const MovieCard: React.FC<MediaCardProps> = ({ media, size }) => {
     return `${SERVER_URL}/public/${posterPath}`;
   };
 
-  const posterUrl = getPosterUrl(media.poster_url);
-
+  const posterUrl = getPosterUrl(item.poster_url);
+  
   const formatDuration = () => {
-      if (media.type === 'series') {
-          return media.total_seasons ? `${media.total_seasons} сезонов` : 'Сериал';
+      if (item.type === 'tv_series') {
+          return item.total_seasons ? `${item.total_seasons} сезонов` : 'Сериал';
       }
-      const hours = Math.floor(media.duration / 60);
-      const mins = media.duration % 60;
+      const hours = Math.floor(item.duration / 60);
+      const mins = item.duration % 60;
       return hours > 0 ? `${hours}ч ${mins}м` : `${mins}мин`;
   };
 
@@ -71,6 +73,20 @@ const MovieCard: React.FC<MediaCardProps> = ({ media, size }) => {
 
   const posterHeight = cardSize.height;
 
+  const renderTitle = () => {
+    const { main_title, season_title, season_number, type } = item;
+
+    if (season_title && season_title.trim() !== "") {
+      return `${main_title}: ${season_title}`;
+    }
+
+    if (type === 'tv_series' && season_number > 1) {
+      return `${main_title} — ${season_number} сезон`;
+    }
+
+    return main_title;
+  };
+
   return (
     <TouchableOpacity 
       style={[styles.card, { width: cardSize.width }]} 
@@ -87,33 +103,33 @@ const MovieCard: React.FC<MediaCardProps> = ({ media, size }) => {
         />
       </View>
 
-      {media.age_rating && (
+      {item.age_rating && (
         <View style={styles.ageBadge}>
-        < Text style={styles.ageText}>{media.age_rating}</Text>
+        < Text style={styles.ageText}>{item.age_rating}</Text>
         </View>
         )}
 
       <View style={styles.typeBadge}>
         <Text style={styles.typeText}>
-        {media.type === 'movie' ? '🎬' : '📺'}
+        {item.type === 'movie' ? '🎬' : '📺'}
         </Text>
       </View>
     </View>
 
     <View style={styles.content}>
       <Text style={styles.title} numberOfLines={2}>
-        {media.title}
+        {renderTitle()}
       </Text>
 
       <View style={styles.metaContainer}>
-        <Text style={styles.metaText}>{media.release_year}</Text>
+        <Text style={styles.metaText}>{item.release_year}</Text>
         <Text style={styles.metaSeparator}>•</Text>
         <Text style={styles.metaText}>{formatDuration()}</Text>
       </View>
 
       {size !== 'small' && (
       <Text style={styles.description} numberOfLines={3}>
-        {media.description}
+        {item.description}
       </Text>
       )}
 

@@ -141,10 +141,28 @@ export default function MediaDetailScreen() {
     );
   };
 
+  const displayTitle = (media.season_title && media.season_title.trim())
+    ? `${media.main_title}: ${media.season_title}`
+    : media.main_title;
+
+  const formatDuration = (totalMinutes: number | null) => {
+    if (!totalMinutes) return 'н/д'; // Если данных нет
+
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+
+    if (hours > 0) {
+      return minutes > 0 ? `${hours} ч ${minutes} мин` : `${hours} ч`;
+    }
+
+    // Если меньше часа, показываем только минуты
+    return `${minutes} мин`;
+};
+
   return (
     <View style={styles.container}>
       <Header 
-        title={media.title} 
+        title={displayTitle} 
         showBackButton={true}
         onMenuPress={handleMenuPress}
       />
@@ -156,19 +174,16 @@ export default function MediaDetailScreen() {
         ]}>
           <Image 
             source={{ 
-              uri: getPosterUrl(
-                (media.type === 'tv_series' && selectedSeason?.poster_url) 
-                ? selectedSeason.poster_url 
-                : media.poster_url
-              ) 
+              uri: getPosterUrl(media.poster_url)
             }} 
             style={styles.poster}
           />
+
           <View style={styles.heroContent }>
-            <Text style={styles.title}>
-              {media.title} 
-              {media.type === 'tv_series' && selectedSeason ? ` (${selectedSeason.season_number} сезон)` : ''}
-            </Text>
+
+            <Text style={styles.title}>{displayTitle} </Text>
+            <Text style={styles.Origtitle}>{media.original_title || ' '}</Text>
+
             <View style={styles.ratingsRow}>
               <Text style={styles.rating}>
                 IMDb: ⭐ {media.imdb_rating || 'N/A'}
@@ -178,37 +193,80 @@ export default function MediaDetailScreen() {
                 Кинопоиск: ⭐ {media.kinopoisk_rating || 'N/A'}
               </Text>
             </View>
-  
-            <Text style={styles.Origtitle}>Оригинал: {media.original_title || ' '}</Text>
-            <Text style={styles.type}>
-              {media.type === 'movie' ? 'Фильм' : 'Сериал'}
-            </Text>
+
+            <View style={styles.infoRow}>
+              <Text style={styles.infoKey}>Тип</Text>
+              <Text style={styles.infoValue}>{media.type === 'movie' ? 'Фильм' : 'Сериал'}</Text>
+            </View>
+
             {media.type === 'tv_series' && media.seasons && (
-              <Text style={styles.type}>
-                Сезонов: {media.seasons.length}
-              </Text>
-            )}
-            {media.genres && media.genres.length > 0 && (
-              <View style={styles.genresContainer}>
-                <Text style={styles.genresLabel}>Жанры:</Text>
-                <View style={styles.genresList}>
-                  {media.genres.map((genre, index) => (
-                    <View key={index} style={styles.genreTag}>
-                      <Text style={styles.genreText}>{genre}</Text>
-                    </View>
-                  ))}
-                </View>
+              <View style={styles.infoRow}>
+                <Text style={styles.infoKey}>Cезонов: </Text>
+                <Text style={styles.infoValue}>{media.seasons.length}</Text>
               </View>
             )}
-            <Text style={styles.year}>
-              Год: { (media.type === 'tv_series' && selectedSeason?.release_year) 
-                    ? selectedSeason.release_year 
-                    : media.release_year }
-            </Text>
+
             {media.type === 'tv_series' && selectedSeason?.episode_count && (
-              <Text style={styles.type}>Серий в сезоне: {selectedSeason.episode_count}</Text>
+              <Text style={styles.type}>Серий в сезоне: {selectedSeason.episode_count} / {}</Text>
             )}
-            <Text style={styles.year}>Возрастное ограничение: {media.age_rating}</Text>
+
+            {/* Жанры в виде интерактивных тегов */}
+            <View style={styles.infoRow}>
+              <Text style={styles.infoKey}>Жанры</Text>
+              <View style={styles.genresList}>
+                {media.genres?.map((genre, index) => (
+                  <TouchableOpacity key={index} style={styles.genreChip}>
+                    <Text style={styles.genreChipText}>{genre}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+
+            <View style={styles.infoRow}>
+              <Text style={styles.infoKey}>Первоисточник</Text>
+              <Text style={styles.infoValue}>
+                {media.source_name || 'Оригинал'}
+              </Text>
+            </View>
+
+            {/* Статус*/}
+            <View style={styles.infoRow}>
+              <Text style={styles.infoKey}>Статус</Text>
+              <Text style={[styles.infoValue, { color: media.status === 'Вышел' ? '#ff4d4d' : '#4dff4d' }]}>
+                {media.status || 'Вышел'}
+              </Text>
+            </View>
+
+            <View style={styles.infoRow}>
+              <Text style={styles.infoKey}>Год выпуска: </Text>
+              <Text style={styles.infoValue}>{media.release_year}</Text>
+            </View>
+
+             <View style={styles.infoRow}>
+              <Text style={styles.infoKey}>Возрастной рейтинг</Text>
+              <View style={styles.ageBadge}>
+                <Text style={styles.ageText}>{media.age_rating}</Text>
+              </View>
+            </View>
+
+            {/* Длительность */}
+            <View style={styles.infoRow}>
+              <Text style={styles.infoKey}>Длительность</Text>
+              <Text style={styles.infoValue}>
+                  {formatDuration(media.duration)}
+                  {media.type === 'tv_series' ? ' ~ серия' : ''}
+              </Text>
+            </View>
+            
+            {/* Студия */}
+            <View style={styles.infoRow}>
+              <Text style={styles.infoKey}>Студия</Text>
+              <TouchableOpacity>
+                  <Text style={[styles.infoValue, styles.linkText]}>{media.studio_name || 'Не указана'}</Text>
+              </TouchableOpacity>
+            </View>
+
+           
           </View>
         </View>
 
@@ -289,7 +347,7 @@ const styles = StyleSheet.create({
   },
   poster: {
     width: 340,
-    height: 380,
+    aspectRatio: 2 / 3,
     borderRadius: 8,
     ...Platform.select({
       web: {
@@ -303,23 +361,62 @@ const styles = StyleSheet.create({
   },
   heroContent: {
     flex: 1,
+    gap: 12,
+  },
+  infoRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  infoKey: {
+    color: '#888', 
+    fontSize: 15,
+    width: 120, 
+  },
+  infoValue: {
+    color: '#fff',
+    fontSize: 15,
+    flex: 1,
+  },
+  linkText: {
+    color: '#ff4d4d', 
+  },
+  genresList: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    flex: 1,
+  },
+  genreChip: {
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  genreChipText: {
+    color: '#ff4d4d',
+    fontSize: 14,
+  },
+  ageBadge: {
+    borderWidth: 1,
+    borderColor: '#fff',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  ageText: {
+    color: '#fff',
+    fontSize: 22,
+    fontWeight: 'bold',
   },
   title: {
     fontSize: 34,
     fontWeight: 'bold',
     color: '#fff',
-    marginBottom: 8,
   },
   Origtitle: {
     fontSize: 20,
     fontWeight: 'bold',
     color: '#fff',
-    marginBottom: 10,
-  },
-  year: {
-    fontSize: 16,
-    color: '#fff',
-    marginBottom: 10,
   },
   rating: {
     fontSize: 16,
@@ -351,7 +448,6 @@ const styles = StyleSheet.create({
   ratingsRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 10,
     flexWrap: 'wrap',
     gap: 8,
   },
@@ -366,11 +462,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#999',
     marginBottom: 6,
-  },
-  genresList: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6,
   },
   genreTag: {
     backgroundColor: 'rgba(255,255,255,0.1)',
@@ -494,7 +585,7 @@ const styles = StyleSheet.create({
     borderColor: '#333',
   },
   pickerBtnActive: {
-    backgroundColor: '#e50914', // Цвет Netflix
+    backgroundColor: '#e50914', 
     borderColor: '#e50914',
   },
   pickerBtnText: {

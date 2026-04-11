@@ -26,6 +26,7 @@ export default function MainScreen() {
 
   return (
     <View style={styles.container}>
+      
 
       <Header
         title="Главная"
@@ -58,10 +59,13 @@ export default function MainScreen() {
               style={styles.popularScroll}
             >
               {newMedia.map(item => (
-                <View key={item.media_id} style={styles.cardWrapper}>
-                  <MediaCard media={item} />
+                <View key={item.season_id} style={styles.cardWrapper}>
+                  <MediaCard 
+                    MediaRelease={item}  
+                  />
                 </View>
               ))}
+              
               {newMedia.length === 0 && (
                 <Text style={styles.emptyText}>Нет популярных фильмов</Text>
               )}
@@ -91,8 +95,10 @@ export default function MainScreen() {
               style={styles.popularScroll}
             >
               {ComingSoonMedia.map(item => (
-                <View key={item.media_id} style={styles.cardWrapper}>
-                  <MediaCard media={item} />
+                <View key={item.season_id} style={styles.cardWrapper}>
+                  <MediaCard 
+                    MediaRelease={item}
+                  />
                 </View>
               ))}
               {ComingSoonMedia.length === 0 && (
@@ -124,8 +130,10 @@ export default function MainScreen() {
               style={styles.popularScroll}
             >
               {ComediaMedia.map(item => (
-                <View key={item.media_id} style={styles.cardWrapper}>
-                  <MediaCard media={item} />
+                <View key={item.season_id} style={styles.cardWrapper}>
+                  <MediaCard 
+                    MediaRelease={item}
+                  />
                 </View>
               ))}
               {ComediaMedia.length === 0 && (

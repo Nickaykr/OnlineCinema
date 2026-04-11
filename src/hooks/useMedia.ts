@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
-import { Media } from '../../types/media.types';
+import { Media, MediaRelease } from '../../types/media.types';
 import { mediaAPI, MediaFilters } from '../services/api';
 
 // Базовый хук для общих фильтров
 export const useMedia = (filters?: MediaFilters) => {
-  const [media, setMedia] = useState<Media[]>([]);
+  const [media, setMedia] = useState<MediaRelease[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -42,7 +42,7 @@ export const useMedia = (filters?: MediaFilters) => {
 
 // Хук для популярного контента
 export const usePopularMedia = (limit: number = 20) => {
-  const [media, setMedia] = useState<Media[]>([]);
+  const [media, setMedia] = useState<MediaRelease[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -118,7 +118,7 @@ export const useNewMedia = (limit: number = 20) => {
 
 // Хук для скорых релизов
 export const useComingSonnMedia = (limit: number = 20) => {
-  const [media, setMedia] = useState<Media[]>([]);
+  const [media, setMedia] = useState<MediaRelease[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -156,7 +156,7 @@ export const useComingSonnMedia = (limit: number = 20) => {
 
 // Универсальный хук для любого жанра
 export const useMediaByGenre = (genre: string, limit: number = 20) => {
-  const [media, setMedia] = useState<Media[]>([]);
+  const [media, setMedia] = useState<MediaRelease[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -195,7 +195,7 @@ export const useMediaByGenre = (genre: string, limit: number = 20) => {
 
 // Хук для фильмов (использует специализированный метод)
 export const useMovies = (limit: number = 20) => {
-  const [media, setMedia] = useState<Media[]>([]);
+  const [media, setMedia] = useState<MediaRelease[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -232,7 +232,7 @@ export const useMovies = (limit: number = 20) => {
 
 // Хук для сериалов 
 export const useSeries = (limit: number = 20) => {
-  const [media, setMedia] = useState<Media[]>([]);
+  const [media, setMedia] = useState<MediaRelease[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -270,8 +270,8 @@ export const useSeries = (limit: number = 20) => {
 
 // Хук для получения медиа по ID
 export const useMediaById = (id: string) => {
-  const [media, setMedia] = useState<Media | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [media, setMedia] = useState<MediaRelease | null>(null);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const fetchMediaById = async () => {
@@ -286,8 +286,8 @@ export const useMediaById = (id: string) => {
       
       const response = await mediaAPI.getMediaById(id);
 
-      if (response && response.media_id) {
-        setMedia(response); // Сохраняем весь объект целиком
+      if (response && (response.season_id || response.media_id)) {
+        setMedia(response as MediaRelease);
       } else {
         setError('Медиа-контент не найден');
       }
@@ -300,6 +300,11 @@ export const useMediaById = (id: string) => {
   };
 
   useEffect(() => {
+    if (!id || id === 'undefined') {
+      setLoading(false); 
+      return;
+    }
+
     fetchMediaById();
   }, [id]);
 
@@ -320,9 +325,8 @@ export const useMediaByYear = (year: number, limit: number = 20) => {
   return useMedia({ year, limit });
 };
 
-// Хук для фильмов 
 export const useAnimation = (limit: number = 20) => {
-  const [media, setMedia] = useState<Media[]>([]);
+  const [media, setMedia] = useState<MediaRelease[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
