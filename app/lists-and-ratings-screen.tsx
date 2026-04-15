@@ -4,13 +4,13 @@ import Header from '../src/components/Header';
 import SideMenu from '../src/components/SideMenu';
 import { mediaAPI } from '../src/services/api';
 import { CONFIG } from '../src/services/constants';
-import { Media } from '../types/media.types';
+import { MediaRelease } from '../types/media.types';
 
 export default function ListsAndRatingsScreen() {
   const [isMenuVisible, setIsMenuVisible] = useState(false);
-  const [topRated, setTopRated] = useState<Media[]>([]);
-  const [mostPopular, setMostPopular] = useState<Media[]>([]);
-  const [newReleases, setNewReleases] = useState<Media[]>([]);
+  const [topRated, setTopRated] = useState<MediaRelease[]>([]);
+  const [mostPopular, setMostPopular] = useState< MediaRelease[]>([]);
+  const [newReleases, setNewReleases] = useState< MediaRelease[]>([]);
   const [loading, setLoading] = useState(true);
 
   const SERVER_URL = CONFIG.SERVER_URL;
@@ -26,6 +26,7 @@ export default function ListsAndRatingsScreen() {
   useEffect(() => {
     loadData();
   }, []);
+  
 
   const loadData = async () => {
     try {
@@ -76,14 +77,14 @@ export default function ListsAndRatingsScreen() {
     return `${SERVER_URL}/public/${posterPath}`;
   };
 
-  const renderMediaCard = (media: Media, index: number, showRank: boolean = false) => {
+  const renderMediaCard = (media: MediaRelease, index: number, showRank: boolean = false) => {
     const posterUrl = getPosterUrl(media.poster_url, media.title);
 
     return (
       <TouchableOpacity 
-        key={media.media_id} 
+        key={media.season_id} 
         style={styles.mediaCard}
-        onPress={() => console.log('Open media:', media.media_id)}
+        onPress={() => console.log('Open media:', media.season_id)}
       >
         {showRank && (
           <View style={styles.rankBadge}>
@@ -96,7 +97,7 @@ export default function ListsAndRatingsScreen() {
           onError={(e) => console.log('❌ Image load error:', media.title)}
         />
         <View style={styles.mediaContent}>
-          <Text style={styles.mediaTitle} numberOfLines={2}>{media.title}</Text>
+          <Text style={styles.mediaTitle} numberOfLines={2}>{media.main_title}</Text>
           <Text style={styles.mediaYear}>{media.release_year}</Text>
           <View style={styles.ratingContainer}>
             <Text style={styles.rating}>⭐ {media.imdb_rating|| 'N/A'}</Text>
@@ -107,7 +108,7 @@ export default function ListsAndRatingsScreen() {
     );
   };
 
-  const renderSection = (title: string, media: Media[], showRank: boolean = false) => (
+  const renderSection = (title: string, media: MediaRelease[], showRank: boolean = false) => (
     <View style={styles.section}>
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>{title}</Text>
@@ -133,7 +134,7 @@ export default function ListsAndRatingsScreen() {
     </View>
   );
 
-  const renderTopList = (title: string, media: Media[]) => (
+  const renderTopList = (title: string, media: MediaRelease[]) => (
     <View style={styles.topListSection}>
       <Text style={styles.topListTitle}>{title}</Text>
       <ScrollView 

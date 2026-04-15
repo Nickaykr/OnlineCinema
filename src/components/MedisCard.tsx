@@ -118,7 +118,7 @@ const MovieCard: React.FC<MediaCardProps> = ({ MediaRelease, size }) => {
 
     <View style={styles.content}>
       <Text style={styles.title} numberOfLines={2}>
-        {renderTitle()}
+        {renderTitle() || "Без названия"}
       </Text>
 
       <View style={styles.metaContainer}>

@@ -60,8 +60,7 @@ export default function MainScreen() {
               {MovMedia.map(item => (
                 <View key={item.season_id} style={styles.cardWrapper}>
                   <MediaCard 
-                    media={item}  
-                    season={item} 
+                    MediaRelease={item}
                   />
                 </View>
               ))}
@@ -96,8 +95,7 @@ export default function MainScreen() {
               {SerMedia.map(item => (
                  <View key={item.season_id} style={styles.cardWrapper}>
                   <MediaCard 
-                    media={item}  
-                    season={item} 
+                    MediaRelease={item}
                   />
                 </View>
               ))}
@@ -132,8 +130,7 @@ export default function MainScreen() {
               {AniMedia.map(item => (
                 <View key={item.season_id} style={styles.cardWrapper}>
                   <MediaCard 
-                    media={item}  
-                    season={item} 
+                    MediaRelease={item}
                   />
                 </View>
               ))}

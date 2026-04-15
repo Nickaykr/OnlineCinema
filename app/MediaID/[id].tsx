@@ -1,4 +1,4 @@
-import { useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Dimensions, Image, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import WebView from 'react-native-webview';
@@ -15,6 +15,12 @@ export default function MediaDetailScreen() {
   const [selectedEpisode, setSelectedEpisode] = useState<any>(null);
   const [isMenuVisible, setIsMenuVisible] = useState(false);
   const [selectedSource, setSelectedSource] = useState<any>(null);
+  //Отслеживания состония кнопки "Показать полностью"
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  const toggleExpanded = () => {
+    setIsExpanded(!isExpanded);
+  };
 
   const { width: screenWidth } = Dimensions.get('window');
   const VIDEO_WIDTH = screenWidth > 800 ? 800 : screenWidth - 40; 
@@ -34,6 +40,8 @@ export default function MediaDetailScreen() {
       }
     }
   }, [media, selectedEpisode]);
+
+  
 
   const handleMenuPress = () => {
     setIsMenuVisible(true); 
@@ -72,6 +80,10 @@ export default function MediaDetailScreen() {
       </View>
     );
   }
+
+  // const [selectedRating, setSelectedRating] = useState(media.user_rating || 0);
+  // const [hoverRating, setHoverRating] = useState(0);
+  // const [isHovering, setIsHovering] = useState(false);
 
   // Фильтруем основные плееры (фильм или серия)
   const videoSources = media.type === 'tv_series' 
@@ -157,7 +169,11 @@ export default function MediaDetailScreen() {
 
     // Если меньше часа, показываем только минуты
     return `${minutes} мин`;
-};
+  };
+
+  const directors = media.people?.filter(person => person.role_name === 'Режиссёр') || [];
+
+  const MainActors = media.people?.filter(person => person.role_name === 'Главный актёр') || [];
 
   return (
     <View style={styles.container}>
@@ -180,9 +196,17 @@ export default function MediaDetailScreen() {
           />
 
           <View style={styles.heroContent }>
-
-            <Text style={styles.title}>{displayTitle} </Text>
-            <Text style={styles.Origtitle}>{media.original_title || ' '}</Text>
+            <View style={styles.titleContainer}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.title}>{displayTitle} </Text>
+                <Text style={styles.Origtitle}>{media.original_title || ' '}</Text>
+              </View>
+              
+              <TouchableOpacity style={styles.userRateBtn}>
+                <Text style={styles.starIcon}>⭐</Text>
+                <Text style={styles.userRateText}>Оценить</Text>
+              </TouchableOpacity>
+            </View>
 
             <View style={styles.ratingsRow}>
               <Text style={styles.rating}>
@@ -191,6 +215,10 @@ export default function MediaDetailScreen() {
               <Text style={styles.ratingSeparator}>|</Text>
               <Text style={styles.rating}>
                 Кинопоиск: ⭐ {media.kinopoisk_rating || 'N/A'}
+              </Text>
+              <Text style={styles.ratingSeparator}>|</Text>
+              <Text style={styles.rating}>
+                Выбор наших: ⭐ {media.average_rating || 'N/A'}
               </Text>
             </View>
 
@@ -229,7 +257,6 @@ export default function MediaDetailScreen() {
               </Text>
             </View>
 
-            {/* Статус*/}
             <View style={styles.infoRow}>
               <Text style={styles.infoKey}>Статус</Text>
               <Text style={[styles.infoValue, { color: media.status === 'Вышел' ? '#ff4d4d' : '#4dff4d' }]}>
@@ -258,7 +285,6 @@ export default function MediaDetailScreen() {
               </Text>
             </View>
             
-            {/* Студия */}
             <View style={styles.infoRow}>
               <Text style={styles.infoKey}>Студия</Text>
               <TouchableOpacity>
@@ -266,14 +292,61 @@ export default function MediaDetailScreen() {
               </TouchableOpacity>
             </View>
 
-           
-          </View>
+            <View style={styles.infoRow}>
+              <Text style={styles.infoKey}>Режиссёр</Text>
+              <View style={styles.genresList}> 
+                {directors.map((person, index) => (
+                  <TouchableOpacity key={person.person_id || index} style={styles.genreChip}>
+                    <Text style={styles.genreChipText}>{person.full_name}</Text>
+                  </TouchableOpacity>
+                ))}
+                {directors.length === 0 && (
+                  <Text style={styles.infoValue}>Не указан</Text>
+                )}
+              </View>
+            </View>
+
+            <View style={styles.infoRow}>
+              <Text style={styles.infoKey}>Главные герои</Text>
+              <View style={styles.genresList}> 
+                {MainActors.map((person, index) => (
+                  <TouchableOpacity key={person.person_id || index} style={styles.genreChip}>
+                    <Text style={styles.genreChipText}>{person.character_name} ({person.full_name})</Text>
+                  </TouchableOpacity>
+                ))}
+                {MainActors.length === 0 && (
+                  <Text style={styles.infoValue}>Не указан</Text>
+                )}
+              </View>
+            </View>
+
+            <View style={styles.infoRow} >
+              <Text style={styles.infoKey}>Полный состав</Text>
+              <TouchableOpacity onPress={() => router.push(`/MediaID/${id}/cast`)}>
+                <Text style={styles.allCastLink}>Все {media.people?.length}</Text>
+              </TouchableOpacity>
+            </View>
+
+          </View>   
         </View>
 
         {media.description && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Описание</Text>
-            <Text style={styles.description}>{media.description}</Text>
+            
+            <Text 
+              style={styles.description} 
+              numberOfLines={isExpanded ? undefined : 3} // Ограничиваем строки
+              ellipsizeMode="tail"
+            >
+              {media.description}
+            </Text>
+
+            <TouchableOpacity onPress={toggleExpanded} style={styles.moreButton}>
+              <Text style={styles.moreButtonText}>
+                {isExpanded ? 'Свернуть' : 'Показать полностью'}
+              </Text>
+            </TouchableOpacity>
           </View>
         )}
 
@@ -312,7 +385,6 @@ export default function MediaDetailScreen() {
   );
   
 }
-
 
 const styles = StyleSheet.create({
   scrollContent: {
@@ -598,5 +670,41 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 10,
+  },
+  allCastLink: {
+    color: '#ff4d4d', 
+    fontSize: 15,
+    fontWeight: '500',
+  },
+  moreButton: {
+    marginTop: 8,
+    alignSelf: 'center',
+  },
+  moreButtonText: {
+    color: '#ff4d4d',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  titleContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    width: '100%',
+  },
+  userRateBtn: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 8,
+    minWidth: 80,
+  },
+  userRateText: {
+    color: '#888',
+    fontSize: 12,
+    marginTop: 4,
+  },
+  starIcon: {
+    fontSize: 20,
   },
 });

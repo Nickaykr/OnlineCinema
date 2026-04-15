@@ -88,7 +88,7 @@ export default function GenreMediaScreen() {
         ) : (
           media.map(item => (
             <View key={item.media_id} style={styles.cardContainer}>
-              <MediaCard media={item} size="large" />
+              <MediaCard MediaRelease={item} size="large" />
             </View>
           ))
         )}

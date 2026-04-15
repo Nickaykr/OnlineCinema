@@ -176,6 +176,9 @@ export const userAPI = {
   
   updateProfile: (userData: UpdateProfileData): Promise<{ data: { user: User } }> => 
     api.put('/users/profile', userData),
+
+  // setMediaRating: (mediaId: number, rating: number): Promise<{ data: { success: boolean, newRating: number } }> => 
+  //   api.post('/media/rate', { mediaId, rating })
 };
 
 export const mediaAPI = {

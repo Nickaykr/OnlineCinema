@@ -47,11 +47,22 @@ export interface Season {
 
   title?: string;
   studio_name?: string;
- 
+  people?: Person[];
   episode_count?: number;
+  average_rating?: number;
+  total_votes?: number;
+  user_rating?: numver; 
 }
 
 export type MediaRelease = Media & Season & {
   main_title: string;     
   season_title?: string;   
 };
+
+export interface Person {
+  person_id: number;
+  full_name: string;
+  role_name: string; 
+  photo_url: string | null;
+  character_name?: string; 
+}

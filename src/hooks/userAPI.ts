@@ -46,13 +46,13 @@ export const useUser = (): UseUserReturn => {
 
     const updateUser = useCallback(async (userData: UpdateProfileData) => {
         try {
-        const response = await userAPI.updateProfile(userData);
-        const updatedUser = response.data.user;
-        setUser(updatedUser);
-        return updatedUser; 
+            const response = await userAPI.updateProfile(userData);
+            const updatedUser = response.data.user;
+            setUser(updatedUser);
+            return updatedUser; 
         } catch (err) {
-        console.error('Failed to update user:', err);
-        throw err;
+            console.error('Failed to update user:', err);
+            throw err;
         }
     }, []);
 

@@ -86,7 +86,21 @@ const HorizontalMediaCard: React.FC<HorizontalMediaCardProps> = ({ MediaRelease,
   const cardSize = getCardSize();
   const posterSize = getPosterSize();
 
-    return (
+  const renderTitle = () => {
+    const { main_title, season_title, season_number, type } = item;
+
+    if (season_title && season_title.trim() !== "") {
+      return `${main_title}: ${season_title}`;
+    }
+
+    if (type === 'tv_series' && season_number > 1) {
+      return `${main_title} — ${season_number} сезон`;
+    }
+
+    return main_title;
+  };
+
+  return (
     <TouchableOpacity 
       style={[styles.card, cardSize]} 
       onPress={onPress}
@@ -125,7 +139,7 @@ const HorizontalMediaCard: React.FC<HorizontalMediaCardProps> = ({ MediaRelease,
         <View style={styles.content}>
           <View style={styles.titleContainer}>
             <Text style={styles.title} numberOfLines={2}>
-              {item.title}
+              {renderTitle()}
             </Text>
           </View>
 
