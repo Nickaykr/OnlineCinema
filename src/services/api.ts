@@ -13,9 +13,9 @@ export const api = axios.create({
 
 api.interceptors.request.use(
   async (config) => {
-  
+
     const token = await storage.getSecureItem('accessToken');
-    
+
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     } else {
@@ -177,8 +177,8 @@ export const userAPI = {
   updateProfile: (userData: UpdateProfileData): Promise<{ data: { user: User } }> => 
     api.put('/users/profile', userData),
 
-  // setMediaRating: (mediaId: number, rating: number): Promise<{ data: { success: boolean, newRating: number } }> => 
-  //   api.post('/media/rate', { mediaId, rating })
+  setMediaRating: (season_id: number, rating: number): Promise<{ data: { success: boolean, newRating: number } }> => 
+    api.post('/media/rate', {season_id, rating })
 };
 
 export const mediaAPI = {

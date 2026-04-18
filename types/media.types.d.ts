@@ -17,6 +17,7 @@ export interface Media {
   created_at?: string;
   updated_at?: string;
   genres?: string[];
+  extras?: MediaExtra[];
 }
 
 export interface Episode {
@@ -65,4 +66,9 @@ export interface Person {
   role_name: string; 
   photo_url: string | null;
   character_name?: string; 
+}
+
+interface MediaExtra {
+  url: string;
+  type_name: string; 
 }

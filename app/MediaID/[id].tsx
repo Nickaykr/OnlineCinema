@@ -5,6 +5,7 @@ import WebView from 'react-native-webview';
 import Header from '../../src/components/Header';
 import SideMenu from '../../src/components/SideMenu';
 import { useMediaById } from '../../src/hooks/useMedia';
+import { userAPI } from '../../src/services/api';
 import { CONFIG } from '../../src/services/constants';
 
 export default function MediaDetailScreen() {
@@ -18,6 +19,10 @@ export default function MediaDetailScreen() {
   //Отслеживания состония кнопки "Показать полностью"
   const [isExpanded, setIsExpanded] = useState(false);
 
+  const [selectedRating, setSelectedRating] = useState(media?.user_rating || 0);
+  const [hoverRating, setHoverRating] = useState(0);
+  const [isHovering, setIsHovering] = useState(false);
+
   const toggleExpanded = () => {
     setIsExpanded(!isExpanded);
   };
@@ -28,11 +33,16 @@ export default function MediaDetailScreen() {
 
   useEffect(() => {
     if (media) {
+      if (media.user_rating !== undefined) {
+        setSelectedRating(media.user_rating);
+      }
+      
       // Если это сериал, берем источники из эпизода, если фильм - из main_sources
       const sources = media.type === 'tv_series' 
         ? selectedEpisode?.sources 
         : media.main_sources;
 
+        
       if (sources && sources.length > 0) {
         setSelectedSource(sources[0]);
       } else {
@@ -81,51 +91,47 @@ export default function MediaDetailScreen() {
     );
   }
 
-  // const [selectedRating, setSelectedRating] = useState(media.user_rating || 0);
-  // const [hoverRating, setHoverRating] = useState(0);
-  // const [isHovering, setIsHovering] = useState(false);
-
   // Фильтруем основные плееры (фильм или серия)
   const videoSources = media.type === 'tv_series' 
     ? selectedEpisode?.sources?.filter((s: any) => s.source_type !== 'trailer')
     : media.main_sources?.filter((s: any) => s.source_type !== 'trailer');
 
-  // Фильтруем только трейлеры
-  const trailerSource = media.type === 'tv_series'
-    ? selectedSeason?.sources?.filter((s: any) => s.source_type === 'trailer') // Если трейлер у сезона
-    : media.main_sources?.filter((s: any) => s.source_type === 'trailer');
+  // Фильтруем трейлеры и кадры
+  const mediaContent = [
+    ...(media.extras?.filter(item => item.type_name === 'trailer') || []),
+    ...(media.extras?.filter(item => item.type_name === 'screenshot') || [])
+  ];
 
-  const renderExternalPlayer = (url: string | null) => {
-    if (!url) {
+  const renderExternalPlayer = (url: string | null, customHeight?: number) => {
+      if (!url) {
+        return (
+          <View style={[styles.playerPlaceholder, customHeight ? { height: customHeight } : { height: VIDEO_HEIGHT }]}>
+            <Text style={styles.noVideoText}>Видео временно недоступно</Text>
+          </View>
+        );
+      }
+
       return (
-        <View style={[styles.playerPlaceholder, { height: VIDEO_HEIGHT }]}>
-          <Text style={styles.noVideoText}>Видео временно недоступно</Text>
+        <View style={[styles.playerContainer, { height: customHeight || VIDEO_HEIGHT }]}>
+          {Platform.OS === 'web' ? (
+            <iframe
+              src={url}
+              style={{ width: '100%', height: '100%', border: 'none' }}
+              allowFullScreen
+              allow="autoplay; encrypted-media; fullscreen"
+            />
+          ) : (
+            <WebView
+              source={{ uri: url }}
+              style={{ flex: 1, backgroundColor: '#000' }}
+              javaScriptEnabled={true}
+              domStorageEnabled={true}
+              allowsFullscreenVideo={true}
+            />
+          )}
         </View>
       );
-    }
-
-    return (
-      <View style={[styles.playerContainer, { height: VIDEO_HEIGHT }]}>
-        {Platform.OS === 'web' ? (
-          <iframe
-            src={url}
-            style={{ width: '100%', height: '100%', border: 'none' }}
-            allowFullScreen
-            allow="autoplay; encrypted-media; fullscreen"
-          />
-        ) : (
-          <WebView
-            source={{ uri: url }}
-            style={{ flex: 1, backgroundColor: '#000' }}
-            javaScriptEnabled={true}
-            domStorageEnabled={true}
-            allowsFullscreenVideo={true}
-            allowsInlineMediaPlayback={true} 
-          />
-        )}
-      </View>
-    );
-  };
+    };
 
   const renderSourcePicker = (sources: any[], currentSource: any, onSelect: (s: any) => void, label: string) => {
     if (!sources || sources.length <= 1) return null;
@@ -175,6 +181,36 @@ export default function MediaDetailScreen() {
 
   const MainActors = media.people?.filter(person => person.role_name === 'Главный актёр') || [];
 
+  const handleRate = async (score: number) => {
+    const previousRating = selectedRating; // Сохраняем на случай ошибки
+
+    try {
+      // Оптимистичное обновление (мгновенно меняем UI)
+      setSelectedRating(score);
+      setIsHovering(false);
+
+      //Отправка на сервер через API
+      const response = await userAPI.setMediaRating(Number(id), score);
+      console.log("Ответ от сервера:", response);
+
+      if (response.data.success) {
+        console.log("Оценка сохранена:", response.data.newRating);
+      }
+    } catch (error) {
+      // 3. Откат, если что-то пошло не так
+      setSelectedRating(previousRating);
+      console.error("Ошибка при сохранении оценки:", error);
+      alert("Не удалось сохранить оценку. Проверьте соединение.");
+    }
+  };
+
+  const getRatingColor = (rating: number) => {
+    if (rating === 0) return '#fff'; 
+    if (rating <= 3) return '#ff4d4d'; 
+    if (rating <= 7) return '#ffc107';
+    return '#4dff4d'; 
+  };
+
   return (
     <View style={styles.container}>
       <Header 
@@ -197,15 +233,46 @@ export default function MediaDetailScreen() {
 
           <View style={styles.heroContent }>
             <View style={styles.titleContainer}>
-              <View style={{ flex: 1 }}>
+              <View>
                 <Text style={styles.title}>{displayTitle} </Text>
                 <Text style={styles.Origtitle}>{media.original_title || ' '}</Text>
               </View>
               
-              <TouchableOpacity style={styles.userRateBtn}>
-                <Text style={styles.starIcon}>⭐</Text>
-                <Text style={styles.userRateText}>Оценить</Text>
-              </TouchableOpacity>
+              <View style={styles.ratingWrapper}>
+                <TouchableOpacity 
+                  style={styles.userRateBtn} 
+                  onPress={() => setIsHovering(!isHovering)} // Переключаем видимость звезд
+                  activeOpacity={0.8}
+                >
+                  <Text style={[styles.starIcon, { color: getRatingColor(selectedRating) }]}>
+                    {selectedRating > 0 ? '★' : '☆'}
+                  </Text>
+                  <Text style={styles.userRateText}>
+                    {selectedRating > 0 ? `${selectedRating} ваша оценка` : 'Оценить'}
+                  </Text>
+                
+                </TouchableOpacity>
+
+                {/* Выезжающая панель со звездами */}
+                {isHovering && (
+                  <View style={styles.starsDropdown}>
+                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((star) => (
+                      <TouchableOpacity
+                        key={star}
+                        onPress={() => handleRate(star)}
+                        style={styles.starTouch}
+                      >
+                        <Text style={[
+                          styles.starSmall,
+                          selectedRating >= star ? styles.starYellow : styles.starGray
+                        ]}>
+                          ★
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                )}
+              </View>
             </View>
 
             <View style={styles.ratingsRow}>
@@ -218,7 +285,7 @@ export default function MediaDetailScreen() {
               </Text>
               <Text style={styles.ratingSeparator}>|</Text>
               <Text style={styles.rating}>
-                Выбор наших: ⭐ {media.average_rating || 'N/A'}
+                Выбор наших: ⭐ {media.average_rating ? Number(media.average_rating) : 'N/A'}
               </Text>
             </View>
 
@@ -350,10 +417,35 @@ export default function MediaDetailScreen() {
           </View>
         )}
 
-        {trailerSource && (
-          <View style={styles.videoSection}>
-            <Text style={styles.sectionTitle}>Официальный трейлер</Text>
-            {renderExternalPlayer(trailerSource.url)}
+        {mediaContent.length > 0 && (
+          <View style={styles.extraSection}>
+            <Text style={styles.sectionTitle}>Галерея и трейлеры</Text>
+            
+            <ScrollView 
+              horizontal 
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.extraScrollContent}
+            >
+              {mediaContent.map((item, index) => (
+                <View key={index} style={styles.extraItemContainer}>
+                  {item.type_name === 'trailer' ? (
+                    // Трейлер (Плеер)
+                    <View style={styles.trailerWrapper}>
+                      {renderExternalPlayer(item.url, 280)}
+                    </View>
+                  ) : (
+                    // Скриншот
+                    <TouchableOpacity activeOpacity={0.9}>
+                      <Image 
+                        source={{ uri: getPosterUrl(item.url) }} 
+                        style={styles.screenshotItem}
+                        resizeMode="cover"
+                      />
+                    </TouchableOpacity>
+                  )}
+                </View>
+              ))}
+            </ScrollView>
           </View>
         )}
 
@@ -686,25 +778,93 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   titleContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    width: '100%',
+    flexDirection: 'row', 
+    alignItems: 'flex-start', 
+    gap: 15, 
+    marginTop: 10,
+    flexWrap: 'wrap',
   },
   userRateBtn: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 8,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderRadius: 8,
-    minWidth: 80,
+    backgroundColor: '#0f0f0f', 
+    flexDirection: 'row',       
+    alignItems: 'center',       
+    paddingHorizontal: 20,      
+    paddingVertical: 12,        
+    borderRadius: 8,            
+    minWidth: 160,              
+    elevation: 5,
   },
   userRateText: {
-    color: '#888',
-    fontSize: 12,
+    color: '#e2d8d8',
+    fontSize: 18,
     marginTop: 4,
   },
   starIcon: {
-    fontSize: 20,
+    fontSize: 40,               
+    marginRight: 12,
+  },
+  rateTextContainer: {
+    flexDirection: 'column',    
+    justifyContent: 'center',
+  },
+  ratingWrapper: {
+    marginTop: 5,
+    flexDirection: 'row',
+    alignItems: 'center',
+    position: 'relative', 
+    zIndex: 100,
+  },
+  starsDropdown: {
+    position: 'absolute',
+    left: '100%', 
+    flexDirection: 'row',
+    backgroundColor: '#333', // Темный фон как на скрине
+    paddingHorizontal: 10,
+    paddingVertical: 10,
+    borderTopRightRadius: 8,
+    borderBottomRightRadius: 8,
+    alignItems: 'center',
+    // Небольшая тень для объема
+    shadowColor: "#000",
+    shadowOffset: { width: 4, height: 0 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  starTouch: {
+    paddingHorizontal: 4,
+  },
+  starSmall: {
+    fontSize: 26,
+  },
+  starYellow: {
+    color: '#ffc107', 
+  },
+  starGray: {
+    color: '#555',
+  },
+  extraSection: {
+    marginTop: 20,
+    paddingLeft: 20, // Отступ заголовка
+  },
+  extraScrollContent: {
+    paddingRight: 20, // Отступ после последнего элемента
+    alignItems: 'center', // Центрирование по вертикали внутри строки
+  },
+  extraItemContainer: {
+    marginRight: 12, // Расстояние между объектами
+  },
+  trailerWrapper: {
+    width: 480, // Ширина окна трейлера в ленте
+    height: 280, 
+    borderRadius: 10,
+    overflow: 'hidden',
+    backgroundColor: '#000',
+  },
+  screenshotItem: {
+    width: 380, // Ширина скриншота чуть меньше трейлера для акцента
+    height: 280, // Высота должна совпадать с трейлером!
+    borderRadius: 10,
+    backgroundColor: '#222',
   },
 });
