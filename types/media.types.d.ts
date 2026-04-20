@@ -1,6 +1,7 @@
 export interface MediaSource {
   player_name: string;
-  source_type: 'movie' | 'trailer';
+  source_type: string;
+  type_name: string;
   url: string;
 }
 
@@ -11,7 +12,7 @@ export interface Media {
   seasons: Season[];
   
   source_name?: string;
-  main_sources?: MediaSource[];
+  video?: MediaSource[];
   original_title?: string;
   total_seasons?: number;
   created_at?: string;
@@ -71,4 +72,16 @@ export interface Person {
 interface MediaExtra {
   url: string;
   type_name: string; 
+}
+
+export interface MediaComment {
+  id: number;
+  season_id: number;
+  user_id: number;
+  username: string;     
+  avatar_url?: string; 
+  text: string;
+  created_at: string;
+  is_spoiler: boolean;
+  rating: number;
 }

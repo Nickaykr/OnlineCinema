@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Media, MediaRelease } from '../../types/media.types';
+import { Media, MediaComment, MediaRelease } from '../../types/media.types';
 import { authEvents } from '../services/authEvents';
 import { CONFIG } from './constants';
 import { storage } from './storage';
@@ -59,7 +59,7 @@ api.interceptors.response.use(
 );
 
 export interface User {
-  user_id: number;
+  id: number;
   email: string;
   username: string;
   avatar_url?: string;
@@ -286,6 +286,26 @@ export const cinemaClubsAPI = {
       trending: trending.data
     };
   }
+};
+
+export const commentAPI = {
+  // Отправка комментария
+  sendComment: async ( season_id: number, userId: number, text: string, isSpoiler: boolean = false
+  ): Promise<{ success: boolean; comment: MediaComment }> => {
+    const response = await api.post(`/comments/add`, {
+      season_id: season_id,
+      user_id: userId,
+      text: text,           
+      is_spoiler: isSpoiler 
+    });
+    return response.data;
+  },
+
+  // Получение списка
+  getComments: async (season_id: number): Promise<MediaComment[]> => {
+    const response = await api.get(`/comments/media/${season_id}`);
+    return response.data.data; 
+  } 
 };
 
 

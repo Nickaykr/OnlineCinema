@@ -1,16 +1,30 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Dimensions, Image, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Dimensions, Image, Platform, ScrollView, StyleSheet, Text,
+  TextInput,
+  TouchableOpacity, View
+} from 'react-native';
 import WebView from 'react-native-webview';
 import Header from '../../src/components/Header';
 import SideMenu from '../../src/components/SideMenu';
+import { useAuth } from '../../src/context/AuthContext';
 import { useMediaById } from '../../src/hooks/useMedia';
-import { userAPI } from '../../src/services/api';
+import { commentAPI, userAPI } from '../../src/services/api';
 import { CONFIG } from '../../src/services/constants';
+import { MediaComment } from '../../types/media.types';
+
+const { width: screenWidth } = Dimensions.get('window');
+const VIDEO_WIDTH = screenWidth > 800 ? 800 : screenWidth - 40; 
+const VIDEO_HEIGHT = (VIDEO_WIDTH * 9) / 16;
 
 export default function MediaDetailScreen() {
   const { id } = useLocalSearchParams();
   const { media, loading } = useMediaById(id as string);
+  const { user, isAuth, isLoading: authLoading } = useAuth();
+  
+  const userId = user?.id;
 
   const [selectedSeason, setSelectedSeason] = useState<any>(null);
   const [selectedEpisode, setSelectedEpisode] = useState<any>(null);
@@ -20,38 +34,40 @@ export default function MediaDetailScreen() {
   const [isExpanded, setIsExpanded] = useState(false);
 
   const [selectedRating, setSelectedRating] = useState(media?.user_rating || 0);
-  const [hoverRating, setHoverRating] = useState(0);
   const [isHovering, setIsHovering] = useState(false);
+  const [comment, setComment] = useState('');
+  const [isSpoiler, setIsSpoiler] = useState(false);
+  const [userCommentId, setUserCommentId] = useState<number | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [comments, setComments] = useState<MediaComment[]>([]);
 
   const toggleExpanded = () => {
     setIsExpanded(!isExpanded);
   };
 
-  const { width: screenWidth } = Dimensions.get('window');
-  const VIDEO_WIDTH = screenWidth > 800 ? 800 : screenWidth - 40; 
-  const VIDEO_HEIGHT = (VIDEO_WIDTH * 9) / 16;
-
   useEffect(() => {
     if (media) {
+      //Синхронизируем рейтинг пользователя
       if (media.user_rating !== undefined) {
         setSelectedRating(media.user_rating);
       }
-      
-      // Если это сериал, берем источники из эпизода, если фильм - из main_sources
-      const sources = media.type === 'tv_series' 
-        ? selectedEpisode?.sources 
-        : media.main_sources;
 
-        
-      if (sources && sources.length > 0) {
-        setSelectedSource(sources[0]);
+      fetchComments(id)
+      // Определяем массив источников
+      let potentialSources = media.type === 'tv_series' 
+        ? selectedEpisode?.sources 
+        : media.video;
+
+      const videoSources = potentialSources?.filter((s: any) => s.type_name !== 'trailer') || [];
+
+      // 4. Устанавливаем выбранный источник
+      if (videoSources.length > 0) {
+        setSelectedSource(videoSources[0]);
       } else {
         setSelectedSource(null);
       }
     }
-  }, [media, selectedEpisode]);
-
-  
+  }, [media, selectedEpisode]); 
 
   const handleMenuPress = () => {
     setIsMenuVisible(true); 
@@ -94,7 +110,7 @@ export default function MediaDetailScreen() {
   // Фильтруем основные плееры (фильм или серия)
   const videoSources = media.type === 'tv_series' 
     ? selectedEpisode?.sources?.filter((s: any) => s.source_type !== 'trailer')
-    : media.main_sources?.filter((s: any) => s.source_type !== 'trailer');
+    : media.video?.filter((s: any) => s.source_type !== 'trailer');
 
   // Фильтруем трейлеры и кадры
   const mediaContent = [
@@ -209,6 +225,67 @@ export default function MediaDetailScreen() {
     if (rating <= 3) return '#ff4d4d'; 
     if (rating <= 7) return '#ffc107';
     return '#4dff4d'; 
+  };
+
+  const fetchComments = async (id: string | string[]) => {
+    try {
+      const data = await commentAPI.getComments(Number(id));
+      setComments(data);
+
+      const myComment = data.find((c: any) => c.user_id === userId);
+      
+      if (myComment) {
+        setUserCommentId(myComment.id); 
+        setComment(myComment.text);    
+        setIsSpoiler(myComment.is_spoiler);
+        setIsEditing(true);             
+      } else {
+        setIsEditing(false);
+        setUserCommentId(null);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const handleSendComment = async () => {
+    if (comment.trim() === '') {
+      alert("Комментарий не может быть пустым");
+      return;
+    }
+
+    if (comment.trim().length < 2) {
+      alert("Комментарий слишком короткий");
+      return;
+    }
+
+    console.log(userId)
+
+    if (!isAuth || !userId) {
+      alert("Войдите в аккаунт, чтобы оставить отзыв");
+      return;
+    }
+
+
+    try {
+      // Запрос к API
+      const response = await commentAPI.sendComment(
+        +id,
+        userId,
+        comment,
+        isSpoiler 
+      );
+
+      if (response.success) {
+        alert("Комментарий успешно добавлен!");
+        setComment(""); 
+        fetchComments(id); 
+      }
+    } catch (error: any) {
+      // Обработка того самого ограничения (один пользователь - один коммент)
+      const errorMsg = error.response?.data?.message || "Ошибка при отправке";
+      alert(errorMsg);
+    }
   };
 
   return (
@@ -418,7 +495,7 @@ export default function MediaDetailScreen() {
         )}
 
         {mediaContent.length > 0 && (
-          <View style={styles.extraSection}>
+          <View style={styles.section}>
             <Text style={styles.sectionTitle}>Галерея и трейлеры</Text>
             
             <ScrollView 
@@ -451,7 +528,7 @@ export default function MediaDetailScreen() {
 
         <View style={styles.videoSection}>
           <Text style={styles.sectionTitle}>
-            {media.type === 'tv_series' ? `Смотреть: ${selectedEpisode?.title}` : 'Смотреть онлайн'}
+            {media.type === 'tv_series' ? `Смотреть: ${selectedEpisode?.title}` : `Смотреть онлайн: ${displayTitle}`}
           </Text>
           
           {renderSourcePicker(videoSources, selectedSource, setSelectedSource, "Выберите плеер")}
@@ -465,6 +542,42 @@ export default function MediaDetailScreen() {
               </View>
             )}
           </View>
+        </View >
+
+        <View style={styles.commentFormSection}>
+          <Text style={styles.sectionTitle}>
+            {isEditing ? "Редактировать ваш отзыв" : "Оставить комментарий"}
+          </Text>
+
+          <TouchableOpacity 
+            style={styles.spoilerContainer} 
+            onPress={() => setIsSpoiler(!isSpoiler)}
+            activeOpacity={0.7}
+          >
+            <View style={[styles.checkbox, isSpoiler && styles.checkboxActive]}>
+              {isSpoiler && <Text style={styles.checkmark}>✓</Text>}
+            </View>
+            <Text style={styles.spoilerText}>В комментарии есть спойлеры</Text>
+          </TouchableOpacity>
+  
+          <TextInput
+            style={styles.input}
+            placeholder="Напишите ваше мнение..."
+            placeholderTextColor="#777"
+            multiline={true}             
+            scrollEnabled={false}
+            value={comment}
+            onChangeText={setComment}
+          />
+          
+          <TouchableOpacity 
+            style={styles.sendButton} 
+            onPress={handleSendComment}
+          >
+            <Text style={styles.sendButtonText}>
+              {isEditing ? "Сохранить изменения" : "Отправить"}
+            </Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
 
@@ -619,74 +732,17 @@ const styles = StyleSheet.create({
     color: '#666',
     fontSize: 16,
   },
-  genresContainer: {
-    marginBottom: 12,
-  },
-  genresLabel: {
-    fontSize: 14,
-    color: '#999',
-    marginBottom: 6,
-  },
-  genreTag: {
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  genreText: {
-    fontSize: 12,
-    color: '#fff',
-  },
   videoSection: {
+    width: '100%',
     padding: 20,
     borderTopWidth: 1,
     marginVertical: 20,
-    height: '50%',
     borderTopColor: '#333',
     alignItems: 'center',
-  },
-  video: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 8,
-    backgroundColor: '#000',
-  },
-  noVideoContainer: {
-    height: 150,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#1a1a1a',
-    borderRadius: 8,
   },
   noVideoText: {
     color: '#666',
     fontSize: 16,
-  },
-  videoControls: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    padding: 20,
-    paddingTop: 0,
-  },
-  controlButton: {
-    backgroundColor: '#e50914',
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 8,
-  },
-  controlButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '500',
-  },
-  webviewContainer: {
-    height: 250,
-    borderRadius: 8,
-    overflow: 'hidden',
-    backgroundColor: '#000',
-  },
-  webview: {
-    flex: 1,
   },
   //Для веба
   heroSectionWeb: {
@@ -758,7 +814,8 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   playerCenteredWrapper: {
-    width: '100%',
+    width: VIDEO_WIDTH,       
+    height: VIDEO_HEIGHT,
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 10,
@@ -844,6 +901,7 @@ const styles = StyleSheet.create({
     color: '#555',
   },
   extraSection: {
+    borderTopWidth: 1,
     marginTop: 20,
     paddingLeft: 20, // Отступ заголовка
   },
@@ -866,5 +924,67 @@ const styles = StyleSheet.create({
     height: 280, // Высота должна совпадать с трейлером!
     borderRadius: 10,
     backgroundColor: '#222',
+  },
+  commentFormSection: {
+    backgroundColor: '#555',
+    borderTopWidth: 1,
+    marginLeft: 20,
+    marginEnd: 20,
+    padding: 10,
+    borderRadius: 15,           
+    overflow: 'hidden',
+  },
+  input: {
+    backgroundColor: '#333',
+    color: '#fff',
+    borderRadius: 8,
+    padding: 15,
+    fontSize: 18,
+    minHeight: 100, 
+    textAlignVertical: 'top', 
+    marginBottom: 15,
+    paddingHorizontal: 15,
+    paddingVertical: 12,
+  },
+  sendButton: {
+    backgroundColor: '#E50914', 
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+    width: '20%'
+  },
+  sendButtonText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
+    textTransform: 'uppercase',
+  },
+  spoilerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 20,
+    paddingVertical: 5,
+  },
+  checkbox: {
+    width: 22,
+    height: 22,
+    borderRadius: 6,
+    borderWidth: 2,
+    borderColor: '#E50914', 
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 10,
+  },
+  checkboxActive: {
+    backgroundColor: '#E50914',
+  },
+  checkmark: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  spoilerText: {
+    color: '#ccc',
+    fontSize: 16,
   },
 });

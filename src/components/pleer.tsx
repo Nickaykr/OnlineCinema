@@ -1,12 +1,12 @@
 import React from 'react';
 
 interface PlayerProps {
-  kpId: string | number;
+  url: string; 
 }
 
-const WebPlayer: React.FC<PlayerProps> = ({ kpId }) => (
+const WebPlayer: React.FC<PlayerProps> = ({ url}) => (
   <iframe
-    src={`https://kinovibe.vip/embed/kinopoisk/${kpId}/`}
+    src={url}
     style={{
       width: '100%',
       height: '100%',
