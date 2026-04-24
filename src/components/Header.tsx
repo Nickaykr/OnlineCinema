@@ -1,8 +1,11 @@
 import { router } from 'expo-router';
 import React from 'react';
 import { StatusBar, Text, TouchableOpacity, View } from 'react-native';
+import { useAuth } from '../../src/context/AuthContext';
 import { HeaderIconProps, HeaderProps } from '../../types/heder.types';
 import { styles } from './Header.styles';
+
+const { user, isAuth, isLoading: authLoading } = useAuth();
 
 const HeaderIcon: React.FC<HeaderIconProps> = ({ onPress, icon, testID }) => (
   <TouchableOpacity
@@ -56,7 +59,7 @@ const Header: React.FC<HeaderProps> = ({
         {showProfile && (
           <HeaderIcon
             onPress={onProfilePress}
-            icon="👤"
+            icon= "👤"
             testID="profile-button"
           />
         )}
