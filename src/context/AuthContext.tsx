@@ -1,10 +1,15 @@
+import axios from 'axios';
 import * as Device from 'expo-device';
 import * as SecureStore from 'expo-secure-store';
 import React, { createContext, ReactNode, useContext, useEffect, useState } from 'react';
 import { Platform } from 'react-native';
 import { authAPI, UpdateProfileData, User, userAPI } from '../services/api';
 import { authEvents } from '../services/authEvents';
+import { CONFIG } from '../services/constants';
 import { storage } from '../services/storage';
+
+
+const API_BASE_URL = CONFIG.API_BASE_URL;
 
 interface AuthContextType {
   user: User | null;
@@ -26,7 +31,6 @@ export const useAuth = () => {
   return context;
 };
 
-// В начале AuthContext.tsx или в отдельном файле
 const getDeviceSessionId = async () => {
   if (Platform.OS === 'web') {
     return localStorage.getItem('device_session_id');
@@ -92,6 +96,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
         // Для Веба: определяем ОС
         const ua = navigator.userAgent;
+        console.log('User Agent:', ua);
         let os = "Unknown OS";
         if (ua.includes("Win")) os = "Windows";
         else if (ua.includes("Mac")) os = "macOS";
@@ -136,9 +141,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setUser(user);
     
     } catch (error: any) {
-      console.log('--- DEBUG LOGIN ERROR ---');
-      console.log('Status:', error.response?.status);
-      console.log('Data:', error.response?.data);
       // Обрабатываем специфическую ошибку лимита устройств
       if (error.response?.status === 403) {
         // Здесь можно вывести красивое модальное окно или Alert
@@ -181,21 +183,26 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const logout = async (): Promise<void> => {
-      try {
-        const refreshToken = await storage.getSecureItem('refreshToken');
-
-        // 2. Отправляем его на сервер, чтобы закрыть сессию в БД
-        if (refreshToken) {
-          await authAPI.logout({ refreshToken }); 
-        }
-      } catch (e) {
-        console.log('Logout error (server-side):', e);
-      } finally {
-      //В любом случае очищаем локальные данные (кроме device_session_id!)
+    try {
+      const refreshToken = await storage.getSecureItem('refreshToken');
+      
+      if (refreshToken) {
+        console.log('📡 Попытка удалить сессию на сервере...');
+        
+        // Используем чистый axios напрямую, чтобы не зависеть от твоих конфигов
+        // Замени URL на свой полный путь к API
+        await axios.post(`${API_BASE_URL}/auth/logout`, { refreshToken }, {
+          timeout: 5000 // Ждем максимум 5 секунд
+        });
+        
+        console.log('✅ Сервер подтвердил удаление сессии');
+      }
+    } catch (e) {
+      console.log('Server-side logout failed, but we continue local logout');
+    } finally {
       await storage.removeSecureItem('accessToken');
       await storage.removeSecureItem('refreshToken');
       await storage.removeItem('userData');
-      
       setUser(null);
     }
   };
@@ -208,7 +215,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   useEffect(() => {
     authEvents.logout = logout;
-  }, [logout]);
+  }, []);
 
   useEffect(() => {
     loadStoredAuth();

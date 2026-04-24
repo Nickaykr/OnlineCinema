@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { UpdateProfileData, User, userAPI } from '../services/api';
+import { authEvents } from '../services/authEvents';
 import { storage } from '../services/storage';
 
 interface UseUserReturn {
@@ -20,11 +21,12 @@ export const useUser = (): UseUserReturn => {
             setLoading(true);
             setError(null);
             
-            const refreshToken = await storage.getItem('refreshToken');
+            const refreshToken = await storage.getSecureItem('refreshToken');
             console.log('🔐 Refresh token check:', !!refreshToken);
             
             if (!refreshToken) {
-                throw new Error('No authentication token found. Please login again.');
+                authEvents.logout(); 
+                return;
             }
             
             const response = await userAPI.getProfile();

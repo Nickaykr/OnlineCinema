@@ -1,5 +1,5 @@
 export const authEvents = {
   logout: () => {
-    console.warn('logoutFromApi called before initialization');
+    console.warn('КТО-ТО ВЫЗВАЛ LOGOUT, НО ОН ЕЩЕ НЕ ПРИВЯЗАН В CONTEXT');
   }
 };

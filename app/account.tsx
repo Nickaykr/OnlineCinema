@@ -1,9 +1,11 @@
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import React from 'react';
 import { ActivityIndicator, Alert, Image, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Header from '../src/components/Header';
 import SideMenu from '../src/components/SideMenu';
+import { useAuth } from '../src/context/AuthContext';
 import { useUser } from '../src/hooks/userAPI';
+import { authEvents } from '../src/services/authEvents';
 
 // Компонент для аватара по умолчанию
 const DefaultAvatar = ({ size = 80, name }: { size?: number; name?: string }) => (
@@ -37,6 +39,7 @@ const UserAvatar = ({ user, size = 80 }: { user: any; size?: number }) => {
 const AccountScreen: React.FC = () => {
   const [isMenuVisible, setIsMenuVisible] = React.useState<boolean>(false);
   const { user, loading, error, refreshUser, updateUser } = useUser();
+  const { logout } = useAuth();
 
   const handleMenuPress = () => setIsMenuVisible(true);
   const handleCloseMenu = () => setIsMenuVisible(false);
@@ -89,14 +92,25 @@ const AccountScreen: React.FC = () => {
   }
 
   if (error && !user) {
+  // Проверяем, критическая ли это ошибка авторизации
+    const isAuthError = error.includes('token') || error.includes('login');
+
     return (
       <View style={styles.container}>
         <Header title="Профиль" onMenuPress={handleMenuPress} />
         <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>Ошибка загрузки профиля</Text>
+          <Text style={styles.errorText}>
+            {isAuthError ? "Сессия истекла" : "Ошибка загрузки"}
+          </Text>
           <Text style={styles.errorDescription}>{error}</Text>
-          <TouchableOpacity style={styles.retryButton} onPress={refreshUser}>
-            <Text style={styles.retryButtonText}>Повторить попытку</Text>
+          
+          <TouchableOpacity 
+            style={styles.retryButton} 
+            onPress={() => isAuthError ? authEvents.logout() : refreshUser()}
+          >
+            <Text style={styles.retryButtonText}>
+              {isAuthError ? "Войти заново" : "Повторить попытку"}
+            </Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -121,6 +135,7 @@ const AccountScreen: React.FC = () => {
         {/* Аватар и основная информация */}
   
         <View style={styles.avatarSection}>
+         
           <UserAvatar user={user} size={80} />
           <View style={styles.nameContainer}>
             <Text style={styles.userName}>
@@ -130,6 +145,14 @@ const AccountScreen: React.FC = () => {
               C нами c {user?.created_at ? formatDate(user.created_at) : 'недавнего времени'} 
             </Text>
           </View>
+
+           <TouchableOpacity 
+            style={styles.logoutIconButton} 
+            onPress={logout} // Твоя функция из AuthContext
+            activeOpacity={0.7}
+          >
+            <MaterialIcons name="logout" size={24} color="#fff" />
+          </TouchableOpacity>
         </View>
 
         {/* Детальная информация */}
@@ -240,6 +263,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#1a1a1a',
     padding: 20,
     borderRadius: 16,
+    position: 'relative', 
   },
   avatar: {
     width: 80,
@@ -347,6 +371,14 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  logoutIconButton: {
+    position: 'absolute',
+    top: 15,
+    right: 15,
+    padding: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)', // Легкий полупрозрачный фон
+    borderRadius: 20,
   },
 });
 

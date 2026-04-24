@@ -162,7 +162,7 @@ export const authAPI = {
   },
   
   logout: async (data: { refreshToken: string | null }): Promise<any> => {
-    return await api.post('/auth/logout', data);
+    return await axios.post('/auth/logout', data);
   },
 };
 
