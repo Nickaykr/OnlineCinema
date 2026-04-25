@@ -10,6 +10,7 @@ import WebView from 'react-native-webview';
 import Header from '../../src/components/Header';
 import SideMenu from '../../src/components/SideMenu';
 import { useAuth } from '../../src/context/AuthContext';
+import { useTheme } from '../../src/context/ThemeContext';
 import { useMediaById } from '../../src/hooks/useMedia';
 import { commentAPI, userAPI } from '../../src/services/api';
 import { CONFIG } from '../../src/services/constants';
@@ -23,6 +24,8 @@ export default function MediaDetailScreen() {
   const { id } = useLocalSearchParams();
   const { media, loading } = useMediaById(id as string);
   const { user, isAuth, isLoading: authLoading } = useAuth();
+  const { theme } = useTheme();
+  const styles = getStyles(theme);
   
   const userId = user?.id;
 
@@ -591,13 +594,13 @@ export default function MediaDetailScreen() {
   
 }
 
-const styles = StyleSheet.create({
+const getStyles = (theme: any) => StyleSheet.create({
   scrollContent: {
     paddingBottom: 60, 
   },
   container: {
     flex: 1,
-    backgroundColor: '#0f0f0f',
+    backgroundColor: theme.background,
   },
   content: {
     flex: 1,
@@ -613,7 +616,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   errorText: {
-    color: '#fff',
+    color: theme.text,
     fontSize: 18,
   },
   heroSection: {
@@ -645,17 +648,17 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   infoKey: {
-    color: '#888', 
+    color: theme.textSecondary, 
     fontSize: 15,
     width: 120, 
   },
   infoValue: {
-    color: '#fff',
+    color: theme.text,
     fontSize: 15,
     flex: 1,
   },
   linkText: {
-    color: '#ff4d4d', 
+    color: theme.accent, 
   },
   genresList: {
     flexDirection: 'row',
@@ -664,44 +667,44 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   genreChip: {
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: theme.backgroundSecondary,
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 4,
   },
   genreChipText: {
-    color: '#ff4d4d',
+    color: theme.accent,
     fontSize: 14,
   },
   ageBadge: {
     borderWidth: 1,
-    borderColor: '#fff',
+    borderColor: theme.text,
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 4,
   },
   ageText: {
-    color: '#fff',
+    color: theme.text,
     fontSize: 22,
     fontWeight: 'bold',
   },
   title: {
     fontSize: 34,
     fontWeight: 'bold',
-    color: '#fff',
+    color: theme.text,
   },
   Origtitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#fff',
+    color: theme.text,
   },
   rating: {
     fontSize: 16,
-    color: '#ffd700',
+    color: theme.star,
   },
   type: {
     fontSize: 14,
-    color: '#fff',
+    color: theme.text,
     textTransform: 'uppercase',
     marginBottom: 10,
   },
@@ -713,13 +716,13 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#fff',
+    color: theme.text,
     marginBottom: 12,
     alignSelf: 'flex-start',
   },
   description: {
     fontSize: 24,
-    color: '#ccc',
+    color:  theme.text,
     lineHeight: 28,
   },
   ratingsRow: {
@@ -729,7 +732,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   ratingSeparator: {
-    color: '#666',
+    color: theme.textSecondary,
     fontSize: 16,
   },
   videoSection: {
@@ -741,7 +744,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   noVideoText: {
-    color: '#666',
+    color: theme.textSecondary,
     fontSize: 16,
   },
   //Для веба
@@ -761,11 +764,11 @@ const styles = StyleSheet.create({
   playerContainer: {
     width: '100%',
     maxWidth: 900, 
-    backgroundColor: '#000',
+    backgroundColor: theme.background,
     borderRadius: 16, // Мягкие углы
     overflow: 'hidden',
     elevation: 8,
-    shadowColor: '#000',
+    shadowColor: theme.background,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -773,7 +776,7 @@ const styles = StyleSheet.create({
   playerPlaceholder: {
     width: '100%',
     maxWidth: 900,
-    backgroundColor: '#1a1a1a',
+    backgroundColor: theme.background,
     borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
@@ -787,7 +790,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
   },
   pickerLabel: {
-    color: '#999',
+    color: theme.textSecondary,
     fontSize: 14,
     marginBottom: 8,
     marginLeft: 5,
@@ -797,16 +800,16 @@ const styles = StyleSheet.create({
     paddingBottom: 5,
   },
   pickerBtn: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: theme.backgroundSecondary,
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#333',
+    borderColor: theme.border,
   },
   pickerBtnActive: {
-    backgroundColor: '#e50914', 
-    borderColor: '#e50914',
+    backgroundColor: theme.accent, 
+    borderColor: theme.accent,
   },
   pickerBtnText: {
     color: '#fff',
@@ -821,7 +824,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   allCastLink: {
-    color: '#ff4d4d', 
+    color: theme.accent, 
     fontSize: 15,
     fontWeight: '500',
   },
@@ -830,7 +833,7 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
   },
   moreButtonText: {
-    color: '#ff4d4d',
+    color: theme.accent,
     fontSize: 18,
     fontWeight: 'bold',
   },
@@ -842,7 +845,7 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
   },
   userRateBtn: {
-    backgroundColor: '#0f0f0f', 
+    backgroundColor: theme.backgroundSecondary,
     flexDirection: 'row',       
     alignItems: 'center',       
     paddingHorizontal: 20,      
@@ -852,7 +855,7 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   userRateText: {
-    color: '#e2d8d8',
+    color: theme.text,
     fontSize: 18,
     marginTop: 4,
   },
@@ -875,14 +878,14 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: '100%', 
     flexDirection: 'row',
-    backgroundColor: '#333', // Темный фон как на скрине
+    backgroundColor: theme.background, // Темный фон как на скрине
     paddingHorizontal: 10,
     paddingVertical: 10,
     borderTopRightRadius: 8,
     borderBottomRightRadius: 8,
     alignItems: 'center',
     // Небольшая тень для объема
-    shadowColor: "#000",
+    shadowColor: theme.shadow,
     shadowOffset: { width: 4, height: 0 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
@@ -895,10 +898,10 @@ const styles = StyleSheet.create({
     fontSize: 26,
   },
   starYellow: {
-    color: '#ffc107', 
+    color: theme.star,
   },
   starGray: {
-    color: '#555',
+    color: theme.textSecondary,
   },
   extraSection: {
     borderTopWidth: 1,
@@ -926,7 +929,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#222',
   },
   commentFormSection: {
-    backgroundColor: '#555',
+    backgroundColor: theme.backgroundSecondary,
     borderTopWidth: 1,
     marginLeft: 20,
     marginEnd: 20,
@@ -935,8 +938,8 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   input: {
-    backgroundColor: '#333',
-    color: '#fff',
+    backgroundColor: theme.input,
+    color: theme.text,
     borderRadius: 8,
     padding: 15,
     fontSize: 18,
@@ -947,7 +950,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
   },
   sendButton: {
-    backgroundColor: '#E50914', 
+    backgroundColor: theme.accent,
     paddingVertical: 12,
     borderRadius: 8,
     alignItems: 'center',
@@ -970,16 +973,16 @@ const styles = StyleSheet.create({
     height: 22,
     borderRadius: 6,
     borderWidth: 2,
-    borderColor: '#E50914', 
+    borderColor: theme.accent, 
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 10,
   },
   checkboxActive: {
-    backgroundColor: '#E50914',
+    backgroundColor: theme.accent,
   },
   checkmark: {
-    color: '#fff',
+    color: theme.text,
     fontSize: 14,
     fontWeight: 'bold',
   },

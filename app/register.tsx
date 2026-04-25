@@ -8,6 +8,8 @@ import {
   ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View
 } from 'react-native';
 import { useAuth } from '../src/context/AuthContext';
+import { useTheme } from '../src/context/ThemeContext';
+
 
 export default function RegisterScreen() {
   const [showDatePicker, setShowDatePicker] = useState<boolean>(false);
@@ -21,6 +23,8 @@ export default function RegisterScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showPasswordPovtor, setShowPasswordPovtor] = useState(false);
+  const { theme } = useTheme(); 
+  const styles = getStyles(theme);
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
@@ -269,12 +273,12 @@ export default function RegisterScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (theme: any) => StyleSheet.create({
   container: {
     flexGrow: 1,
     padding: 20,
     justifyContent: 'center',
-    backgroundColor: 'black',
+    backgroundColor: theme.background,
   },
   form: {
     width: '70%',
@@ -283,31 +287,33 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#fff',
+    color: theme.text,
     textAlign: 'center',
     marginBottom: 30,
     marginTop: 20,
   },
   input: {
-    backgroundColor: '#333',
-    color: '#fff',
+    backgroundColor: theme.backgroundSecondary,
+    color: theme.text,
     padding: 15,
     borderRadius: 8,
     marginBottom: 15,
     fontSize: 16,
+    borderWidth: 1, 
+    borderColor: theme.border,
   },
   button: {
-    backgroundColor: '#e50914',
+    backgroundColor: theme.accent,
     padding: 15,
     borderRadius: 8,
     alignItems: 'center',
     marginBottom: 15,
   },
   buttonDisabled: {
-    backgroundColor: '#666',
+    backgroundColor: theme.backgroundSecondary,
   },
   buttonText: {
-    color: '#fff',
+    color: theme.text,
     fontSize: 16,
     fontWeight: 'bold',
   },
@@ -316,10 +322,10 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#e50914',
+    borderColor: theme.accent,
   },
   loginButtonText: {
-    color: '#e50914',
+    color: theme.accent,
     fontSize: 16,
     fontWeight: 'bold',
   },

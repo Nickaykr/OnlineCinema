@@ -3,9 +3,12 @@ import React, { useState } from 'react';
 import { Image, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Header from '../src/components/Header';
 import SideMenu from '../src/components/SideMenu';
+import { useTheme } from '../src/context/ThemeContext';
 
 export default function MainScreen() {
   const [isMenuVisible, setIsMenuVisible] = useState(false);
+  const { theme } = useTheme(); 
+  const styles = getStyles(theme);
 
   const handleMenuPress = () => {
     setIsMenuVisible(true); 
@@ -82,10 +85,10 @@ export default function MainScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (theme: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0f0f0f',
+    backgroundColor: theme.background,
   },
   content: {
     flex: 1,
@@ -93,19 +96,19 @@ const styles = StyleSheet.create({
   heroTitle: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#fff',
+    color: theme.text,
     marginLeft: Platform.OS === 'web' ? 30 : 10,
     marginTop: Platform.OS === 'web' ? 70 : 100,
     marginBottom: 10,
   },
   heroSubtitle: {
     fontSize: 24,
-    color: '#fff',
+    color: theme.text,
     marginLeft: Platform.OS === 'web' ? 30 : 10,
   },
   text: {
     fontSize: 22,
-    color: '#fff',
+    color: theme.text,
     marginLeft: Platform.OS === 'web' ? 30 : 10,
     marginTop: Platform.OS === 'web' ? 30 : 10,
   },
@@ -133,7 +136,7 @@ const styles = StyleSheet.create({
     marginVertical: 30,
   },
   button: {
-    backgroundColor: '#e50914',
+    backgroundColor: theme.accent,
     paddingHorizontal: 30,
     paddingVertical: 15,
     borderRadius: 8,
@@ -147,7 +150,7 @@ const styles = StyleSheet.create({
     }),
   },
   buttonText: {
-    color: '#fff',
+    color: theme.text,
     fontSize: Platform.select({
       web: 16,
       ios: 16,

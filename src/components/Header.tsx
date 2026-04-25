@@ -1,11 +1,9 @@
 import { router } from 'expo-router';
 import React from 'react';
 import { StatusBar, Text, TouchableOpacity, View } from 'react-native';
-import { useAuth } from '../../src/context/AuthContext';
 import { HeaderIconProps, HeaderProps } from '../../types/heder.types';
+import { useTheme } from '../context/ThemeContext'; // Импортируем наш хук
 import { styles } from './Header.styles';
-
-const { user, isAuth, isLoading: authLoading } = useAuth();
 
 const HeaderIcon: React.FC<HeaderIconProps> = ({ onPress, icon, testID }) => (
   <TouchableOpacity
@@ -29,6 +27,9 @@ const Header: React.FC<HeaderProps> = ({
    const handleBackPress = () => {
     router.back(); 
   };
+
+  const { theme, isDark, toggleTheme } = useTheme();
+
 
   return (
     <View style={styles.header}>
@@ -64,6 +65,15 @@ const Header: React.FC<HeaderProps> = ({
           />
         )}
       </View>
+      <TouchableOpacity 
+        onPress={toggleTheme} 
+        style={styles.themeBtn}
+        activeOpacity={0.7}
+      >
+        <Text style={styles.themeIcon}>
+          {isDark ? '🌙' : '☀️'}
+        </Text>
+      </TouchableOpacity>
     </View>
   );
 };

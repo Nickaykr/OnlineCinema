@@ -4,23 +4,27 @@ import { ActivityIndicator, Alert, Image, RefreshControl, ScrollView, StyleSheet
 import Header from '../src/components/Header';
 import SideMenu from '../src/components/SideMenu';
 import { useAuth } from '../src/context/AuthContext';
+import { useTheme } from '../src/context/ThemeContext';
 import { useUser } from '../src/hooks/userAPI';
 import { authEvents } from '../src/services/authEvents';
 
 // Компонент для аватара по умолчанию
-const DefaultAvatar = ({ size = 80, name }: { size?: number; name?: string }) => (
-  <View style={[styles.defaultAvatar, { width: size, height: size, borderRadius: size / 2 }]}>
-    <Ionicons name="person" size={size * 0.4} color="#fff" />
-    {name && (
-      <Text style={styles.avatarInitial}>
-        {name.charAt(0).toUpperCase()}
-      </Text>
-    )}
-  </View>
-);
+const DefaultAvatar = ({ size = 80, name }: { size?: number; name?: string }) => {
+    const { theme } = useTheme(); 
+    const styles = getStyles(theme);
+    
+    return (
+      <View style={[styles.defaultAvatar, { width: size, height: size, borderRadius: size / 2 }]}>
+        <Ionicons name="person" size={size * 0.4} color="#fff" />
+      </View>
+    );
+}
 
 // Компонент для отображения аватара
 const UserAvatar = ({ user, size = 80 }: { user: any; size?: number }) => {
+  const { theme } = useTheme(); 
+  const styles = getStyles(theme);
+
   if (user?.avatar_url) {
     return (
       <Image
@@ -40,6 +44,8 @@ const AccountScreen: React.FC = () => {
   const [isMenuVisible, setIsMenuVisible] = React.useState<boolean>(false);
   const { user, loading, error, refreshUser, updateUser } = useUser();
   const { logout } = useAuth();
+  const { theme } = useTheme(); 
+  const styles = getStyles(theme);
 
   const handleMenuPress = () => setIsMenuVisible(true);
   const handleCloseMenu = () => setIsMenuVisible(false);
@@ -151,7 +157,7 @@ const AccountScreen: React.FC = () => {
             onPress={logout} // Твоя функция из AuthContext
             activeOpacity={0.7}
           >
-            <MaterialIcons name="logout" size={24} color="#fff" />
+            <MaterialIcons name="logout" size={24} color={theme.text} />
           </TouchableOpacity>
         </View>
 
@@ -207,10 +213,10 @@ const AccountScreen: React.FC = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (theme: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0f0f0f',
+    backgroundColor: theme.background,
   },
   content: {
     padding: 16,
@@ -223,7 +229,7 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   loadingText: {
-    color: '#fff',
+    color: theme.text,
     marginTop: 12,
     fontSize: 16,
   },
@@ -234,13 +240,13 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   errorText: {
-    color: '#ff6b6b',
+    color: theme.accent,
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 8,
   },
   errorDescription: {
-    color: '#888',
+    color: theme.textSecondary,
     fontSize: 14,
     textAlign: 'center',
     marginBottom: 20,
@@ -252,7 +258,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   retryButtonText: {
-    color: '#fff',
+    color: theme.text,
     fontSize: 16,
     fontWeight: 'bold',
   },
@@ -260,7 +266,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 30,
-    backgroundColor: '#1a1a1a',
+    backgroundColor: theme.background,
     padding: 20,
     borderRadius: 16,
     position: 'relative', 
@@ -280,7 +286,7 @@ const styles = StyleSheet.create({
   },
   avatarInitial: {
     position: 'absolute',
-    color: '#fff',
+    color: theme.text,
     fontSize: 24,
     fontWeight: 'bold',
   },
@@ -291,20 +297,20 @@ const styles = StyleSheet.create({
   userName: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#fff',
+    color: theme.text,
     marginBottom: 4,
   },
   userEmail: {
     fontSize: 16,
-    color: '#888',
+    color: theme.textSecondary,
     marginBottom: 4,
   },
   userSince: {
     fontSize: 14,
-    color: '#666',
+    color: theme.textSecondary,
   },
   infoSection: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: theme.background,
     padding: 20,
     borderRadius: 16,
     marginBottom: 16,
@@ -312,7 +318,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#fff',
+    color: theme.text,
     marginBottom: 16,
   },
   infoItem: {
@@ -321,19 +327,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#333',
+    borderBottomColor: theme.border,
   },
   infoLabel: {
     fontSize: 16,
-    color: '#888',
+    color: theme.textSecondary,
   },
   infoValue: {
     fontSize: 16,
-    color: '#fff',
+    color: theme.text,
     fontWeight: '500',
   },
   statsSection: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: theme.background,
     padding: 20,
     borderRadius: 16,
     marginBottom: 16,
@@ -354,7 +360,7 @@ const styles = StyleSheet.create({
   },
   statLabel: {
     fontSize: 12,
-    color: '#888',
+    color: theme.textSecondary,
   },
   editButton: {
     backgroundColor: '#6200ee',
@@ -368,7 +374,7 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   editButtonText: {
-    color: '#fff',
+    color: theme.text,
     fontSize: 16,
     fontWeight: 'bold',
   },
@@ -377,7 +383,7 @@ const styles = StyleSheet.create({
     top: 15,
     right: 15,
     padding: 8,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)', // Легкий полупрозрачный фон
+    backgroundColor: theme.background, // Легкий полупрозрачный фон
     borderRadius: 20,
   },
 });

@@ -4,12 +4,15 @@ import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-nat
 import Header from '../src/components/Header';
 import MediaCard from '../src/components/horisontalVediaCard';
 import SideMenu from '../src/components/SideMenu';
+import { useTheme } from '../src/context/ThemeContext';
 import { useAnimation, useComingSonnMedia, useMediaByGenre, useMovies, usePopularMedia, useSeries } from '../src/hooks/useMedia';
 
 export default function GenreMediaScreen() {
   const { slug } = useLocalSearchParams();
   const [isMenuVisible, setIsMenuVisible] = useState(false);
-
+  const { theme } = useTheme(); 
+  const styles = getStyles(theme);
+  
   const handleMenuPress = () => {
     setIsMenuVisible(true); 
   };
@@ -103,10 +106,10 @@ export default function GenreMediaScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (theme: any) => StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: '#0f0f0f',
+      backgroundColor: theme.background,
     },
     loader: {
       flex: 1,
@@ -114,7 +117,7 @@ const styles = StyleSheet.create({
       alignItems: 'center',
     },
     error: {
-      color: '#ff4444',
+      color: theme.accent,
       textAlign: 'center',
       marginTop: 20,
       fontSize: 16,
@@ -141,7 +144,7 @@ const styles = StyleSheet.create({
       paddingVertical: 50,
     },
     emptyText: {
-      color: '#666',
+      color: theme.textSecondary,
       fontSize: 16,
       textAlign: 'center',
     },

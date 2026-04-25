@@ -2,9 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Image, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Header from '../src/components/Header';
 import SideMenu from '../src/components/SideMenu';
+import { useTheme } from '../src/context/ThemeContext';
 import { mediaAPI } from '../src/services/api';
 import { CONFIG } from '../src/services/constants';
 import { MediaRelease } from '../types/media.types';
+
 
 export default function ListsAndRatingsScreen() {
   const [isMenuVisible, setIsMenuVisible] = useState(false);
@@ -12,7 +14,9 @@ export default function ListsAndRatingsScreen() {
   const [mostPopular, setMostPopular] = useState< MediaRelease[]>([]);
   const [newReleases, setNewReleases] = useState< MediaRelease[]>([]);
   const [loading, setLoading] = useState(true);
-
+  const { theme } = useTheme(); 
+  const styles = getStyles(theme);
+  
   const SERVER_URL = CONFIG.SERVER_URL;
 
   const handleMenuPress = () => {
@@ -228,10 +232,10 @@ export default function ListsAndRatingsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (theme: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0f0f0f',
+    backgroundColor: theme.background,
   },
   content: {
     flex: 1,
@@ -242,7 +246,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   loadingText: {
-    color: '#fff',
+    color: theme.text,
     marginTop: 10,
     fontSize: 16,
   },
@@ -255,13 +259,13 @@ const styles = StyleSheet.create({
   heroTitle: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#fff',
+    color: theme.text,
     textAlign: 'center',
     marginBottom: 8,
   },
   heroSubtitle: {
     fontSize: 16,
-    color: '#ccc',
+    color: theme.textSecondary,
     textAlign: 'center',
     lineHeight: 22,
   },
@@ -277,7 +281,7 @@ const styles = StyleSheet.create({
   topListTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#fff',
+    color: theme.text,
     marginBottom: 15,
     textAlign: 'center',
   },
@@ -297,7 +301,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   rankNumber: {
-    color: '#fff',
+    color: theme.text,
     fontWeight: 'bold',
     fontSize: 16,
   },
@@ -311,18 +315,18 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   topListMediaTitle: {
-    color: '#fff',
+    color: theme.text,
     fontWeight: 'bold',
     fontSize: 14,
     marginBottom: 4,
   },
   topListYear: {
-    color: '#999',
+    color: theme.textSecondary,
     fontSize: 12,
     marginBottom: 4,
   },
   topListRating: {
-    color: '#ffd700',
+    color: theme.star,
     fontSize: 12,
   },
   section: {
@@ -338,7 +342,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#fff',
+    color: theme.text,
   },
   seeAllButton: {
     paddingHorizontal: 16,
@@ -347,7 +351,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
   },
   seeAllText: {
-    color: '#fff',
+    color: theme.text,
     fontSize: 14,
     fontWeight: '500',
   },
@@ -369,7 +373,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 8,
     left: 8,
-    backgroundColor: '#e50914',
+    backgroundColor: theme.accent,
     borderRadius: 12,
     width: 24,
     height: 24,
@@ -378,7 +382,7 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   rankText: {
-    color: '#fff',
+    color: theme.text,
     fontSize: 12,
     fontWeight: 'bold',
   },
@@ -393,13 +397,13 @@ const styles = StyleSheet.create({
   mediaTitle: {
     fontSize: 14,
     fontWeight: 'bold',
-    color: '#fff',
+    color: theme.text,
     marginBottom: 4,
     lineHeight: 16,
   },
   mediaYear: {
     fontSize: 12,
-    color: '#999',
+    color: theme.textSecondary,
     marginBottom: 6,
   },
   ratingContainer: {
@@ -409,11 +413,11 @@ const styles = StyleSheet.create({
   },
   rating: {
     fontSize: 12,
-    color: '#ffd700',
+    color: theme.star,
   },
   type: {
     fontSize: 10,
-    color: '#666',
+    color: theme.textSecondary,
     textTransform: 'uppercase',
   },
   emptySection: {
@@ -422,7 +426,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   emptyText: {
-    color: '#666',
+    color: theme.textSecondary,
     fontSize: 14,
     fontStyle: 'italic',
   },

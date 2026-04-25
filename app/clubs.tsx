@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Image, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Header from '../src/components/Header';
 import SideMenu from '../src/components/SideMenu';
+import { useTheme } from '../src/context/ThemeContext';
 import { CinemaClub, cinemaClubsAPI } from '../src/services/api';
 import { CONFIG } from '../src/services/constants';
 
@@ -15,6 +16,9 @@ export default function CinemaClubsScreen() {
     trending: CinemaClub[];
   } | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const { theme } = useTheme(); 
+  const styles = getStyles(theme);
 
   const SERVER_URL = CONFIG.SERVER_URL;
 
@@ -195,10 +199,10 @@ export default function CinemaClubsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (theme: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0f0f0f',
+    backgroundColor: theme.background,
   },
   content: {
     flex: 1,
@@ -209,7 +213,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   loadingText: {
-    color: '#fff',
+    color: theme.text,
     marginTop: 10,
     fontSize: 16,
   },
@@ -222,13 +226,13 @@ const styles = StyleSheet.create({
   heroTitle: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: '#fff',
+    color: theme.text,
     textAlign: 'center',
     marginBottom: 8,
   },
   heroSubtitle: {
     fontSize: 16,
-    color: '#ccc',
+    color: theme.textSecondary,
     textAlign: 'center',
     lineHeight: 22,
   },
@@ -254,17 +258,17 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#fff',
+    color: theme.text,
     flex: 1,
   },
   seeAllButton: {
     paddingHorizontal: 16,
     paddingVertical: 6,
-    backgroundColor: 'rgba(255,255,255,0.1)',
+    backgroundColor: theme.backgroundSecondary,
     borderRadius: 16,
   },
   seeAllText: {
-    color: '#fff',
+    color: theme.text,
     fontSize: 14,
     fontWeight: '500',
   },
@@ -277,14 +281,14 @@ const styles = StyleSheet.create({
   clubCard: {
     width: 280,
     marginRight: 15,
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    backgroundColor: theme.cardBackground,
     borderRadius: 12,
     overflow: 'hidden',
   },
   clubImage: {
     width: '100%',
     height: 160,
-    backgroundColor: '#2a2a2a',
+    backgroundColor: theme.backgroundSecondary,
   },
   clubContent: {
     padding: 12,
@@ -292,13 +296,13 @@ const styles = StyleSheet.create({
   clubTitle: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#fff',
+    color: theme.text,
     marginBottom: 4,
     lineHeight: 20,
   },
   clubDescription: {
     fontSize: 12,
-    color: '#999',
+    color: theme.textSecondary,
     marginBottom: 12,
     lineHeight: 16,
   },
@@ -309,16 +313,16 @@ const styles = StyleSheet.create({
   },
   mediaCount: {
     fontSize: 12,
-    color: '#666',
+    color: theme.textSecondary,
   },
   watchButton: {
-    backgroundColor: '#e50914',
+    backgroundColor: theme.accent,
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 8,
   },
   watchButtonText: {
-    color: '#fff',
+    color: theme.text,
     fontSize: 12,
     fontWeight: '500',
   },
@@ -328,7 +332,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   emptyText: {
-    color: '#666',
+    color: theme.textSecondary,
     fontSize: 14,
     fontStyle: 'italic',
   },

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Image, LayoutAnimation, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, UIManager, View } from 'react-native';
 import Header from '../src/components/Header';
 import SideMenu from '../src/components/SideMenu';
+import { useTheme } from '../src/context/ThemeContext';
 import { faqData } from '../src/data/faqData';
 import { FAQCategory, FAQItem } from '../types/faq';
 
@@ -28,6 +29,9 @@ export default function FAQScreen() {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setExpandedQuestion(expandedQuestion === questionId ? null : questionId);
   };
+
+  const { theme } = useTheme(); 
+  const styles = getStyles(theme);
 
   const renderQuestion = (question: FAQItem) => (
     <TouchableOpacity
@@ -102,10 +106,10 @@ export default function FAQScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (theme: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0f0f0f',
+    backgroundColor: theme.background,
   },
   content: {
     flex: 1,
@@ -124,7 +128,7 @@ const styles = StyleSheet.create({
       default: 28
     }),
     fontWeight: 'bold',
-    color: '#fff',
+    color: theme.text,
     textAlign: 'center',
     marginTop: Platform.OS === 'web' ? 30 : 100,
     marginBottom: 10,
@@ -136,7 +140,7 @@ const styles = StyleSheet.create({
       android: 16,
       default: 16
     }),
-    color: '#ccc',
+    color: theme.textSecondary,
     textAlign: 'center',
     marginBottom: 30,
     lineHeight: 22,
@@ -148,7 +152,7 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     borderRadius: 12,
     overflow: 'hidden',
-    backgroundColor: '#1a1a1a',
+    backgroundColor: theme.backgroundSecondary,
   },
   categoryHeader: {
     flexDirection: 'row',
@@ -208,7 +212,7 @@ const styles = StyleSheet.create({
     }),
   },
   questionItem: {
-    backgroundColor: '#2a2a2a',
+    backgroundColor: theme.backgroundSecondary,
     borderRadius: 8,
     marginBottom: 10,
     overflow: 'hidden',
@@ -231,7 +235,7 @@ const styles = StyleSheet.create({
       android: 15,
       default: 15
     }),
-    color: '#fff',
+    color: theme.text,
     fontWeight: '600',
     flex: 1,
     marginRight: 10,
@@ -254,7 +258,7 @@ const styles = StyleSheet.create({
       android: 14,
       default: 14
     }),
-    color: '#ccc',
+    color: theme.textSecondary,
     lineHeight: 20,
   },
 });

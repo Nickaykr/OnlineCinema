@@ -8,6 +8,7 @@ import {
   View
 } from 'react-native';
 import { useAuth } from '../src/context/AuthContext';
+import { useTheme } from '../src/context/ThemeContext';
 
 export default function WelcomeScreen() {
   const [email, setEmail] = useState<string>('');
@@ -62,6 +63,9 @@ export default function WelcomeScreen() {
     showNotification('Функция восстановления пароля временно недоступна. Пожалуйста, обратитесь в поддержку.', 'info');
   };
 
+  const { theme } = useTheme(); 
+  const styles = getStyles(theme);
+
   return (
       <View style={styles.container}>
         <Text style={styles.title}>#КиноБанда</Text>
@@ -88,6 +92,7 @@ export default function WelcomeScreen() {
               secureTextEntry={!showPassword}
               placeholderTextColor="#888"
               editable={!isLoading}
+              
             />
             <TouchableOpacity 
               style={styles.eyeButton}
@@ -134,24 +139,24 @@ export default function WelcomeScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (theme: any) => StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center', 
     padding: 20, 
-    backgroundColor: 'black',
+    backgroundColor: theme.background,
   },
   title: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: 'white',
+    color: theme.text,
     textAlign: 'center',
     marginBottom: 10,
   },
   subtitle: {
     fontSize: 18,
-    color: 'white',
+    color: theme.text,
     textAlign: 'center',
     marginBottom: 30,
   },
@@ -159,25 +164,27 @@ const styles = StyleSheet.create({
     width: '70%',
   },
   input: {
-    backgroundColor: '#333',
-    color: '#fff',
+    backgroundColor: theme.backgroundSecondary,
+    color: theme.text,
     padding: 15,
     borderRadius: 8,
     marginBottom: 15,
     fontSize: 16,
+    borderWidth: 1, 
+    borderColor: theme.border,
   },
   button: {
-    backgroundColor: '#e50914',
+    backgroundColor: theme.accent,
     padding: 15,
     borderRadius: 8,
     alignItems: 'center',
     marginBottom: 15,
   },
   buttonDisabled: {
-    backgroundColor: '#666',
+    backgroundColor: theme.backgroundSecondary,
   },
   buttonText: {
-    color: '#fff',
+    color: theme.text,
     fontSize: 16,
     fontWeight: 'bold',
   },
@@ -186,10 +193,10 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#e50914',
+    borderColor: theme.accent,
   },
   registerButtonText: {
-    color: '#e50914',
+    color: theme.accent,
     fontSize: 16,
     fontWeight: 'bold',
   },
@@ -208,7 +215,7 @@ const styles = StyleSheet.create({
     marginTop: 5, 
   },
   forgotPasswordText: {
-    color: '#888',
+    color: theme.textSecondary,
     fontSize: 16,
     textDecorationLine: 'underline', 
   },

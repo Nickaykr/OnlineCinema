@@ -4,6 +4,7 @@ import { ActivityIndicator, Platform, ScrollView, StyleSheet, Text, TouchableOpa
 import Header from '../src/components/Header';
 import MediaCard from '../src/components/MedisCard';
 import SideMenu from '../src/components/SideMenu';
+import { useTheme } from '../src/context/ThemeContext';
 import { useComingSonnMedia, useMediaByGenre, usePopularMedia } from '../src/hooks/useMedia';
 
 export default function MainScreen() {
@@ -11,6 +12,9 @@ export default function MainScreen() {
   const { media: ComingSoonMedia, loading: ComingSoonLoading } = useComingSonnMedia(9);
   const { media: ComediaMedia, loading: ComediaLoading } = useMediaByGenre('komediya', 9);
   const [isMenuVisible, setIsMenuVisible] = useState(false);
+  const { theme } = useTheme(); 
+  const styles = getStyles(theme);
+  
 
   const handleSeeAll = (category: string, title: string) => {
     router.push(`/${category}?title=${encodeURIComponent(title)}`);
@@ -153,10 +157,10 @@ export default function MainScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (theme: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0f0f0f',
+    backgroundColor: theme.background,
   },
   content: {
     flex: 1,
@@ -164,18 +168,18 @@ const styles = StyleSheet.create({
   heroTitle: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#fff',
+    color: theme.text,
     textAlign: 'center',
     marginTop: Platform.OS === 'web' ? 70 : 100,
     marginBottom: 10,
   },
   heroSubtitle: {
     fontSize: 16,
-    color: '#ccc',
+    color: theme.textSecondary,
     textAlign: 'center',
   },
   popularSection: {
-    backgroundColor: '#2e2b2bff', 
+    backgroundColor: theme.cardBackground,
     marginVertical: 20,
     paddingVertical: 25,
     paddingHorizontal: 15,
@@ -198,13 +202,13 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: Platform.OS === 'web' ? 24 : 20,
     fontWeight: 'bold',
-    color: '#fff',
+    color: theme.text,
     lineHeight: Platform.OS === 'web' ? 28 : 24, 
   },
   seeAllButton: {
     paddingHorizontal: 16,
     paddingVertical: 8,
-    backgroundColor: 'rgba(255,255,255,0.1)',
+    backgroundColor: theme.backgroundSecondary,
     borderRadius: 20,
     minWidth: 60,
     alignItems: 'center',
@@ -213,7 +217,7 @@ const styles = StyleSheet.create({
     flexGrow: 0,
   },
   seeAllText: {
-    color: 'white',
+    color: theme.text,
     fontSize: Platform.OS === 'web' ? 20 : 15,
     fontWeight: '500',
   },
@@ -224,7 +228,7 @@ const styles = StyleSheet.create({
   movieCard: {
     width: 140,
     marginRight: 15,
-    backgroundColor: 'rgba(255,255,255,0.1)',
+    backgroundColor: theme.backgroundSecondary,
     borderRadius: 12,
     padding: 12,
     alignItems: 'center',
@@ -246,7 +250,7 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   emptyText: {
-    color: '#666',
+    color: theme.textSecondary,
     textAlign: 'center',
     paddingHorizontal: 20,
     fontStyle: 'italic',
