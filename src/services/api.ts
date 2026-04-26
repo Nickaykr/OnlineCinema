@@ -76,6 +76,17 @@ export interface User {
   country?: string;
   created_at: string;
   last_login?: string;
+  subscription?: subscription;
+}
+
+export interface subscription {
+  subscription_plans_id: number;
+  name: string;
+  price: number;
+  description: string;
+  plan: string;
+  isActive: boolean;
+  endDate: string;
 }
 
 export interface AuthResponse {
@@ -302,6 +313,18 @@ export const commentAPI = {
     const response = await api.get(`/comments/media/${season_id}`);
     return response.data.data; 
   } 
+};
+
+export const subscriptionAPI = {
+  getPlans: async (): Promise<ApiResponse<subscription[]>> => {
+    const response = await api.get('/subscriptions/plans');
+    return response.data;
+  },  
+
+  subscribe: async (planId: number): Promise<{ success: boolean; message: string }> => {
+    const response = await api.post('/subscriptions/subscribe', { subscription_plans_id: planId });
+    return response.data;
+  }
 };
 
 

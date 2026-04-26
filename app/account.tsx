@@ -1,6 +1,7 @@
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import React from 'react';
-import { ActivityIndicator, Alert, Image, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Image, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Header from '../src/components/Header';
 import SideMenu from '../src/components/SideMenu';
 import { useAuth } from '../src/context/AuthContext';
@@ -63,27 +64,7 @@ const AccountScreen: React.FC = () => {
     }
   };
 
-  const handleEditProfile = () => {
-    Alert.alert('Редактирование', 'Функция редактирования профиля', [
-      {
-        text: 'Отмена',
-        style: 'cancel',
-      },
-      {
-        text: 'OK',
-        onPress: () => {
-          updateUser({ username: user?.username || 'User' });
-        },
-      },
-    ]);
-  };
-
-  // Временная статистика
-  const mockStats = {
-    moviesWatched: 145,
-    hoursWatched: 320,
-    favoriteGenres: 5
-  };
+  const subInfo = user?.subscription;
 
   if (loading && !user) {
     return (
@@ -124,92 +105,115 @@ const AccountScreen: React.FC = () => {
   }
 
   return (
-    <ScrollView 
-      style={styles.container}
-      refreshControl={
-        <RefreshControl
-          refreshing={loading}
-          onRefresh={onRefresh}
-          colors={['#6200ee']}
-          tintColor="#6200ee"
-        />
-      }
-    >
+    <View style={styles.container}>
       <Header title="Профиль" onMenuPress={handleMenuPress} />
-
-      <View style={styles.content}>
-        {/* Аватар и основная информация */}
-  
-        <View style={styles.avatarSection}>
-         
-          <UserAvatar user={user} size={80} />
-          <View style={styles.nameContainer}>
-            <Text style={styles.userName}>
-              {user?.username || 'Пользователь'}
-            </Text>
-            <Text style={styles.userSince}>
-              C нами c {user?.created_at ? formatDate(user.created_at) : 'недавнего времени'} 
-            </Text>
-          </View>
-
-           <TouchableOpacity 
-            style={styles.logoutIconButton} 
-            onPress={logout} // Твоя функция из AuthContext
-            activeOpacity={0.7}
-          >
-            <MaterialIcons name="logout" size={24} color={theme.text} />
-          </TouchableOpacity>
-        </View>
-
-        {/* Детальная информация */}
-        <View style={styles.infoSection}>
-          <Text style={styles.sectionTitle}>Личная информация</Text>
+      <ScrollView 
+        style={styles.container}
+        refreshControl={
+          <RefreshControl
+            refreshing={loading}
+            onRefresh={onRefresh}
+            colors={['#6200ee']}
+            tintColor="#6200ee"
+          />
+        }
+      >
+      
+        <View style={styles.content}>
+          {/* Аватар и основная информация */}
+    
+          <View style={styles.avatarSection}>
           
-          <View style={styles.infoItem}>
-            <Text style={styles.infoLabel}>Имя пользователя</Text>
-            <Text style={styles.infoValue}>
-              {user?.username || 'Не указано'}
-            </Text>
+            <UserAvatar user={user} size={80} />
+            <View style={styles.nameContainer}>
+              <Text style={styles.userName}>
+                {user?.username || 'Пользователь'}
+              </Text>
+              <Text style={styles.userSince}>
+                C нами c {user?.created_at ? formatDate(user.created_at) : 'недавнего времени'} 
+              </Text>
+            </View>
+
+            <TouchableOpacity 
+              style={styles.logoutIconButton} 
+              onPress={logout} 
+              activeOpacity={0.7}
+            >
+              <MaterialIcons name="logout" size={24} color={theme.text} />
+            </TouchableOpacity>
           </View>
 
-          <View style={styles.infoItem}>
-            <Text style={styles.infoLabel}>Страна</Text>
-            <Text style={styles.infoValue}>
-              {user?.country || 'Не указана'}
-            </Text>
-          </View>
+          <View style={styles.subscriptionBar}>
+            <View style={styles.infoGroup}>
+                <MaterialIcons name="card-membership" size={24} color={theme.accent} />
+                <View style={styles.textContainer}>
+                    <Text style={styles.planText}>Тариф: {subInfo?.plan || 'Пробный'}</Text>
+                    {subInfo?.isActive ? (
+                        <Text style={styles.statusActive}>
+                            Активен до: {new Date(subInfo.endDate).toLocaleDateString()}
+                        </Text>
+                    ) : (
+                        <Text style={styles.statusInactive}>Подписка не активна</Text>
+                    )}
+                </View>
+            </View>
 
-          <View style={styles.infoItem}>
-            <Text style={styles.infoLabel}>Дата рождения</Text>
-            <Text style={styles.infoValue}>
-              {user?.date_of_birth ? formatDate(user.date_of_birth) : 'Не указана'}
-            </Text>
-          </View>
-
-          <View style={styles.infoItem}>
-            <Text style={styles.infoLabel}>Последний вход</Text>
-            <Text style={styles.infoValue}>
-              {user?.last_login ? formatDate(user.last_login) : 'Неизвестно'}
-            </Text>
-          </View>
+            {!subInfo?.isActive && (
+                <TouchableOpacity style={styles.buyButton} onPress={() => router.push('/subBuy')}>
+                    <Text style={styles.buyButtonText}>Купить</Text>
+                </TouchableOpacity>
+            )}
         </View>
 
-        {/* <TouchableOpacity 
-          style={styles.editButton} 
-          onPress={handleEditProfile}
-          disabled={loading}
-        >
-          <Text style={styles.editButtonText}>
-            {loading ? 'Загрузка...' : 'Редактировать профиль'}
-          </Text>
-        </TouchableOpacity> */}
-      </View>
+          {/* Детальная информация */}
+          <View style={styles.infoSection}>
+            <Text style={styles.sectionTitle}>Личная информация</Text>
+            
+            <View style={styles.infoItem}>
+              <Text style={styles.infoLabel}>Имя пользователя</Text>
+              <Text style={styles.infoValue}>
+                {user?.username || 'Не указано'}
+              </Text>
+            </View>
 
+            <View style={styles.infoItem}>
+              <Text style={styles.infoLabel}>Страна</Text>
+              <Text style={styles.infoValue}>
+                {user?.country || 'Не указана'}
+              </Text>
+            </View>
+
+            <View style={styles.infoItem}>
+              <Text style={styles.infoLabel}>Дата рождения</Text>
+              <Text style={styles.infoValue}>
+                {user?.date_of_birth ? formatDate(user.date_of_birth) : 'Не указана'}
+              </Text>
+            </View>
+
+            <View style={styles.infoItem}>
+              <Text style={styles.infoLabel}>Последний вход</Text>
+              <Text style={styles.infoValue}>
+                {user?.last_login ? formatDate(user.last_login) : 'Неизвестно'}
+              </Text>
+            </View>
+          </View>
+
+          {/* <TouchableOpacity 
+            style={styles.editButton} 
+            onPress={handleEditProfile}
+            disabled={loading}
+          >
+            <Text style={styles.editButtonText}>
+              {loading ? 'Загрузка...' : 'Редактировать профиль'}
+            </Text>
+          </TouchableOpacity> */}
+        </View>
+      </ScrollView>
       <SideMenu
         isVisible={isMenuVisible}
         onClose={handleCloseMenu}
       />
-    </ScrollView>
+    </View>
   );
 };
 
@@ -385,6 +389,49 @@ const getStyles = (theme: any) => StyleSheet.create({
     padding: 8,
     backgroundColor: theme.background, // Легкий полупрозрачный фон
     borderRadius: 20,
+  },
+  buyButton: {
+    backgroundColor: theme.accent,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 8,
+    marginLeft: 15,
+  },
+  buyButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+  },
+  subscriptionBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: theme.backgroundSecondary, 
+    padding: 16,
+    borderRadius: 12,
+    marginTop: 10,
+  },
+  textGroup: {
+    flex: 1, // чтобы текст не налезал на кнопку
+  },
+  infoGroup: {
+    flexDirection: 'row', // Иконка и текст в ряд
+    alignItems: 'center',
+    flex: 1, // Позволяет тексту занимать оставшееся место, не толкая кнопку
+  },
+  textContainer: {
+    marginLeft: 12, // Отступ от иконки
+  },
+  planText: {
+    color: theme.text,
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  statusActive: {
+    color: '#4CAF50', 
+    fontSize: 12,
+  },
+  statusInactive: {
+    color: theme.accent, 
+    fontSize: 12,
   },
 });
 

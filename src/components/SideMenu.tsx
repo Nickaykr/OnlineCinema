@@ -1,8 +1,6 @@
 import { router } from 'expo-router';
 import React from 'react';
-import { Dimensions, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-
-const { width, height } = Dimensions.get('window');
+import { Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 interface MenuItem {
   label: string;
@@ -129,8 +127,8 @@ const styles = StyleSheet.create({
     top: Platform.OS === 'web' ? 0 : 20,
     left: 0,
     bottom: 0,
-    width: Platform.OS === 'web' ? width * 0.3 : width * 0.6 ,
-    height: height,
+    width: Platform.OS === 'web' ? '30%' : '75%', 
+    height: '100%', 
     backgroundColor: 'white',
     zIndex: 1000,
     shadowColor: '#000',
