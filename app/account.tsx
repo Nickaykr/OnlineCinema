@@ -119,6 +119,7 @@ const AccountScreen: React.FC = () => {
         }
       >
       
+
         <View style={styles.content}>
           {/* Аватар и основная информация */}
     
@@ -158,11 +159,12 @@ const AccountScreen: React.FC = () => {
                 </View>
             </View>
 
-            {!subInfo?.isActive && (
-                <TouchableOpacity style={styles.buyButton} onPress={() => router.push('/subBuy')}>
-                    <Text style={styles.buyButtonText}>Купить</Text>
-                </TouchableOpacity>
-            )}
+            <TouchableOpacity style={styles.buyButton} onPress={() => router.push('/subBuy')}>
+                <Text style={styles.buyButtonText}>
+                    {subInfo?.isActive ? "Продлить" : "Купить"}
+                </Text>
+            </TouchableOpacity>
+           
         </View>
 
           {/* Детальная информация */}

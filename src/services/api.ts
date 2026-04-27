@@ -89,6 +89,13 @@ export interface subscription {
   endDate: string;
 }
 
+export interface PromoResponse {
+  success: boolean;
+  message: string;
+  percent: number;
+  
+}
+
 export interface AuthResponse {
   message: string;
   accessToken: string;  
@@ -324,7 +331,12 @@ export const subscriptionAPI = {
   subscribe: async (planId: number): Promise<{ success: boolean; message: string }> => {
     const response = await api.post('/subscriptions/subscribe', { subscription_plans_id: planId });
     return response.data;
-  }
+  },
+
+  setPromoCode: async (code: string): Promise<PromoResponse> => {
+    const response = await api.post('/subscriptions/validate', { code: code });
+    return response.data;
+  },
 };
 
 
