@@ -1,25 +1,29 @@
 import { router } from 'expo-router';
 import React from 'react';
 import { Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useAuth } from '../context/AuthContext';
 
 interface MenuItem {
   label: string;
   icon: string;
   onPress: () => void;
   isDestructive?: boolean;
+  isAdminOnly?: boolean;
 }
 
 interface SideMenuProps {
   isVisible: boolean;
   onClose: () => void;
   menuItems?: MenuItem[];
+  
 }
 
 const SideMenu: React.FC<SideMenuProps> = ({ 
   isVisible, 
   onClose,
-  menuItems = defaultMenuItems 
+  menuItems 
 }) => {
+  const { user } = useAuth();
 
   if (!isVisible) return null;
 
@@ -27,6 +31,27 @@ const SideMenu: React.FC<SideMenuProps> = ({
     item.onPress();
     onClose();
   };
+
+  const defaultItems: MenuItem[] = [
+    { label: 'Главная', icon: '🏠', onPress: () => router.push('/main') },
+    { label: 'Каталог', icon: '🎬', onPress: () => router.push('/catalog') },
+    { label: 'Киноклубы', icon: '👥', onPress: () => router.push('/clubs') },
+    { label: 'Списки и Рейтинги', icon: '⭐', onPress: () => router.push('/lists-and-ratings-screen') },
+    { label: 'Статистика', icon: '📊', onPress: () => router.push('/statistic') },
+    { label: 'Аккаунт', icon: '👤', onPress: () => router.push('/account') },
+    { label: 'О нас', icon: 'ℹ️', onPress: () => router.push('/about') },
+  ];
+
+  if (user?.is_admin) {
+    defaultItems.push({
+      label: 'Админ-панель',
+      icon: '🔐',
+      onPress: () => router.push('/(admin)'),
+      isAdminOnly: true
+    });
+  }
+
+  const finalMenuItems = menuItems || defaultItems;
 
   return (
     <>
@@ -45,7 +70,7 @@ const SideMenu: React.FC<SideMenuProps> = ({
         </View>
 
         <ScrollView style={styles.menuContent}>
-          {menuItems.map((item, index) => (
+          {finalMenuItems.map((item: MenuItem, index: number) => (
             <TouchableOpacity
               key={index}
               style={[
@@ -72,44 +97,6 @@ const SideMenu: React.FC<SideMenuProps> = ({
     </>
   );
 };
-
-const defaultMenuItems: MenuItem[] = [
-  {
-    label: 'Главная',
-    icon: '🏠',
-    onPress: () => router.push('/main'),
-  },
-  {
-    label: 'Каталог',
-    icon: '🎬',
-    onPress: () => router.push('/catalog'),
-  },
-  {
-    label: 'Киноклубы',
-    icon: '👥',
-    onPress: () => router.push('/clubs'),
-  },
-  {
-    label: 'Списки и Рейтинги',
-    icon: '⭐',
-    onPress: () => router.push('/lists-and-ratings-screen'),
-  },
-  {
-    label: 'Статистика',
-    icon: '📊',
-    onPress: () => router.push('/statistic'),
-  },
-  {
-    label: 'Аккаунт',
-    icon: '👤',
-    onPress: () => router.push('/account'),
-  },
-  {
-    label: 'О нас',
-    icon: 'ℹ️',
-    onPress: () => router.push('/about'),
-  },
-];
 
 const styles = StyleSheet.create({
   overlay: {

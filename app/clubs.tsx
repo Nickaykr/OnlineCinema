@@ -38,7 +38,6 @@ export default function CinemaClubsScreen() {
     try {
       setLoading(true);
       const data = await cinemaClubsAPI.getClubSections();
-      console.log('📊 Loaded clubs data:', data);
       setSections(data);
     } catch (error) {
       console.error('Error loading cinema clubs:', error);
@@ -75,12 +74,6 @@ export default function CinemaClubsScreen() {
   const renderClubCard = (club: CinemaClub) => {
     const coverUrl = getClubCoverUrl(club.cover_image, club.title);
     
-    console.log('🖼️ Club image debug:', {
-      title: club.title,
-      original: club.cover_image,
-      fixed: coverUrl
-    });
-
     return (
       <TouchableOpacity 
         key={club.club_id} 

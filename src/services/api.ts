@@ -77,6 +77,7 @@ export interface User {
   created_at: string;
   last_login?: string;
   subscription?: subscription;
+  is_admin: boolean;
 }
 
 export interface subscription {

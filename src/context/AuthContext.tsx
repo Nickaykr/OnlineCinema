@@ -125,8 +125,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         device_id: deviceSessionId,
         device_name: deviceName
       });
-
-      console.log('📤 Sending to server:', response.data);
       
       const { accessToken, refreshToken, device_id: newId, user } = response.data;
       // Сохраняем полученный ID (он придет от сервера при первом входе)
@@ -187,7 +185,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const refreshToken = await storage.getSecureItem('refreshToken');
       
       if (refreshToken) {
-        console.log('📡 Попытка удалить сессию на сервере...');
         
         // Используем чистый axios напрямую, чтобы не зависеть от твоих конфигов
         // Замени URL на свой полный путь к API
@@ -195,7 +192,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           timeout: 5000 // Ждем максимум 5 секунд
         });
         
-        console.log('✅ Сервер подтвердил удаление сессии');
       }
     } catch (e) {
       console.log('Server-side logout failed, but we continue local logout');

@@ -54,7 +54,6 @@ export default function ListsAndRatingsScreen() {
   };
 
   const getPosterUrl = (posterPath: string | null, title: string = ''): string => {
-    console.log('🖼️ getPosterUrl called:', { posterPath, title });
     if (!posterPath) {
       return `https://via.placeholder.com/200x300/1a1a1a/ffffff?text=${encodeURIComponent(title || 'Фильм')}`;
     }

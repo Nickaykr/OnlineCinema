@@ -35,7 +35,6 @@ export default function SubscriptionScreen() {
     },[]);
 
     useEffect(() => {
-      console.log(user)
       if (user?.subscription?.isActive) {
         setActivePlanId(user.subscription.subscription_plans_id);
       } else {

@@ -210,11 +210,7 @@ export default function MediaDetailScreen() {
 
       //Отправка на сервер через API
       const response = await userAPI.setMediaRating(Number(id), score);
-      console.log("Ответ от сервера:", response);
 
-      if (response.data.success) {
-        console.log("Оценка сохранена:", response.data.newRating);
-      }
     } catch (error) {
       // 3. Откат, если что-то пошло не так
       setSelectedRating(previousRating);
@@ -261,8 +257,6 @@ export default function MediaDetailScreen() {
       alert("Комментарий слишком короткий");
       return;
     }
-
-    console.log(userId)
 
     if (!isAuth || !userId) {
       alert("Войдите в аккаунт, чтобы оставить отзыв");
