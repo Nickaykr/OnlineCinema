@@ -9,6 +9,7 @@ export interface Media {
   media_id: string;
   title: string;
   type: 'movie' | 'tv_series'; 
+  is_animation: boolean;
   seasons: Season[];
   
   source_name?: string;
@@ -19,6 +20,7 @@ export interface Media {
   updated_at?: string;
   genres?: string[];
   extras?: MediaExtra[];
+  
 }
 
 export interface Episode {
@@ -53,7 +55,7 @@ export interface Season {
   episode_count?: number;
   average_rating?: number;
   total_votes?: number;
-  user_rating?: numver; 
+  user_rating?: number; 
 }
 
 export type MediaRelease = Media & Season & {

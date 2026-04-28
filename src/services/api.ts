@@ -214,7 +214,7 @@ export const mediaAPI = {
 
   // Получить медиа по ID
   getMediaById: async (id: string): Promise<MediaRelease> => {
-    const response = await api.get(`/media/${id}`);
+    const response = await api.get(`/media/${id}?type=season`);
     return response.data;
   },
 

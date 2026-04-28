@@ -41,9 +41,6 @@ export default function AdminLayout() {
         ),
       }}
     >
-      <Stack.Screen name="index" options={{ title: 'Панель управления' }} />
-      {/* <Stack.Screen name="promos" options={{ title: 'Промокоды' }} />
-      <Stack.Screen name="users" options={{ title: 'Пользователи' }} /> */}
     </Stack>
   );
 }
