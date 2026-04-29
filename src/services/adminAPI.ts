@@ -80,7 +80,17 @@ export const adminApi = {
   getMediaById: (id: number) => api.get(`/media/${id}?type=media`).then(res => res.data),
 
   updateMedia: (id: number, data: any) => api.put(`/admin/media/${id}`, data).then(res => res.data),
-  
+
+  getAllUsers: () => api.get(`/admin/users`).then(res => res.data),
+
+  async removeSubscription(userId: number): Promise<any> {
+    const res = await api.delete(`/admin/users/${userId}/subscription`);
+    return res.data;
+  },
+  async giveSubscription(userId: number, planId: number): Promise<any> {
+    const res = await api.post(`/admin/users/${userId}/subscription`, { subscription_plans_id: planId});
+    return res.data;
+  }, 
   // Создать новую франшизу
   createMedia: (data: any) => api.post('/admin/media', data).then(res => res.data),
   

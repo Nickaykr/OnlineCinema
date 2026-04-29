@@ -68,7 +68,7 @@ api.interceptors.response.use(
 );
 
 export interface User {
-  id: number;
+  user_id: number;
   email: string;
   username: string;
   avatar_url?: string;
