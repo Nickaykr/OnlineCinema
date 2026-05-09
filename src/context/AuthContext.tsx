@@ -46,6 +46,41 @@ const setDeviceSessionId = async (id: string) => {
   }
 };
 
+const getDeviceInfo = async () => {
+  // 1. Работаем с ID (уникальный ключ)
+  const storedId = await getDeviceSessionId();
+  const device_id = storedId || `web-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+  
+  // 2. Определяем имя (читаемое название)
+  let device_name = "";
+
+  if (Platform.OS !== 'web') {
+    device_name = `${Device.brand} ${Device.modelName || ''}`;
+  } else {
+    const ua = navigator.userAgent;
+    let os = "Unknown OS";
+    if (ua.includes("Win")) os = "Windows";
+    else if (ua.includes("Mac")) os = "macOS";
+    else if (ua.includes("Linux")) os = "Linux";
+    else if (ua.includes("Android")) os = "Android";
+    else if (ua.includes("iPhone") || ua.includes("iPad")) os = "iOS";
+
+    let browser = "Browser";
+    if (ua.includes("YaBrowser")) browser = "Yandex";
+    else if (ua.includes("OPR") || ua.includes("Opera")) browser = "Opera";
+    else if (ua.includes("Edg")) browser = "Edge";
+    else if (ua.includes("Chrome") && !ua.includes("Edg")) browser = "Chrome";
+    else if (ua.includes("Firefox")) browser = "Firefox";
+    else if (ua.includes("Safari") && !ua.includes("Chrome")) browser = "Safari";
+
+    device_name = `${os} (${browser})`;
+  }
+
+  // ВАЖНО: Возвращаем объект с обоими полями
+  return { device_id, device_name };
+};
+
+
 interface AuthProviderProps {
   children: ReactNode;
 }
@@ -84,46 +119,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const login = async (email: string, password: string): Promise<void> => {
     try {
       setIsLoading(true);
-
-     // Получаем ID. Если его нет, явно ставим null, чтобы поле попало в JSON
-      const storedId = await getDeviceSessionId();
-      const deviceSessionId = storedId || `web-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;;
-
-      const getBetterDeviceName = () => {
-        if (Platform.OS !== 'web') {
-          return `${Device.brand} ${Device.modelName || ''}`;
-        }
-
-        // Для Веба: определяем ОС
-        const ua = navigator.userAgent;
-        console.log('User Agent:', ua);
-        let os = "Unknown OS";
-        if (ua.includes("Win")) os = "Windows";
-        else if (ua.includes("Mac")) os = "macOS";
-        else if (ua.includes("Linux")) os = "Linux";
-        else if (ua.includes("Android")) os = "Android";
-        else if (ua.includes("iPhone") || ua.includes("iPad")) os = "iOS";
-
-        // Определяем Браузер
-        let browser = "Browser";
-
-        if (ua.includes("YaBrowser")) browser = "Yandex"; // Проверяем Яндекс первым
-        else if (ua.includes("OPR") || ua.includes("Opera")) browser = "Opera";
-        else if (ua.includes("Edg")) browser = "Edge";
-        else if (ua.includes("Chrome") && !ua.includes("Edg")) browser = "Chrome";
-        else if (ua.includes("Firefox")) browser = "Firefox";
-        else if (ua.includes("Safari") && !ua.includes("Chrome")) browser = "Safari";
-
-        return `${os} (${browser})`;
-      };
-
-      const deviceName = getBetterDeviceName();
+      
+      const { device_id, device_name } = await getDeviceInfo();
       
       const response = await authAPI.login({ 
         email, 
         password,
-        device_id: deviceSessionId,
-        device_name: deviceName
+        device_id: device_id,
+        device_name: device_name
       });
       
       const { accessToken, refreshToken, device_id: newId, user } = response.data;
@@ -157,14 +160,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       try {
         setIsLoading(true);
 
+        const { device_id, device_name } = await getDeviceInfo();
+
         const dataWithDevice = {
           ...userData,
-          device_name: `${Platform.OS} ${Platform.Version}`
+          device_id, 
+          device_name
         };
 
         const response = await authAPI.register(dataWithDevice);
 
-        const { accessToken, refreshToken, device_id, user: regUser } = response.data;
+        const { accessToken, refreshToken, user: regUser } = response.data;
 
         await setDeviceSessionId(device_id);
 

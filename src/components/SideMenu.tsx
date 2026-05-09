@@ -42,7 +42,7 @@ const SideMenu: React.FC<SideMenuProps> = ({
     { label: 'О нас', icon: 'ℹ️', onPress: () => router.push('/about') },
   ];
 
-  if (user?.is_admin) {
+  if (user?.role === 'Admin') {
     defaultItems.push({
       label: 'Админ-панель',
       icon: '🔐',

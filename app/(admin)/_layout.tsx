@@ -17,8 +17,7 @@ export default function AdminLayout() {
   }
 
   // Если пользователя нет или он не админ — редирект на главную
-  if (!user || !user.is_admin) {
-
+  if (!user || user.role !== 'Admin') {
     return <Redirect href="/" />;
   }
 

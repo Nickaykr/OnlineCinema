@@ -31,7 +31,7 @@ export default function UserListScreen() {
     const matchesSearch = u.username.toLowerCase().includes(search.toLowerCase()) || 
                           u.email.toLowerCase().includes(search.toLowerCase());
     
-    if (filter === 'admins') return matchesSearch && u.is_admin;
+    if (filter === 'admins') return matchesSearch && u.role === 'Admin';
     if (filter === 'subscribers') return matchesSearch && u.subscription?.isActive;
     return matchesSearch;
   });
@@ -144,7 +144,7 @@ export default function UserListScreen() {
             />
             <View style={styles.userInfo}>
               <Text style={[styles.userName, { color: theme.text }]}>{item.username}</Text>
-              {item.is_admin && (
+              {item.role === 'Admin' && (
                 <View style={styles.adminBadge}>
                   <MaterialIcons name="security" size={12} color="#FF3B30" />
                   <Text style={styles.adminBadgeText}>ADMIN</Text>
