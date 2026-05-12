@@ -14,7 +14,13 @@ export const useMedia = (filters?: MediaFilters) => {
       setError(null);
       
       console.log('🔄 Fetching media with filters:', filters);
-      const response = await mediaAPI.getMedia(filters);
+      let response;
+      if (filters?.search) {
+        response = await mediaAPI.quickSearch(filters.search);
+      } else {
+        // Иначе используем стандартный тяжелый роут
+        response = await mediaAPI.getMedia(filters);
+      }
       
       if (response.success) {
         setMedia(response.data);

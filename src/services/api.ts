@@ -256,6 +256,11 @@ export const mediaAPI = {
     const response = await api.get(`/media?is_animation=1&limit=${limit}`);
     return response.data;
   },
+
+  quickSearch: async (query: string): Promise<ApiResponse<MediaRelease[]>> => {
+    const response = await api.get(`/media/search?search=${query}&limit=5`);
+    return response.data;
+  }
 };
 
 export const cinemaClubsAPI = {

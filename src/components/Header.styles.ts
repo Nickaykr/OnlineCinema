@@ -1,6 +1,10 @@
 import { Platform, StatusBar, StyleSheet } from 'react-native';
 
 export const styles = StyleSheet.create({
+  mainWrapper: {
+    zIndex: 1000,
+    elevation: 10,
+  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -18,6 +22,35 @@ export const styles = StyleSheet.create({
     top: 0,
     left: 0,
     zIndex: 1000,
+  },
+  overlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 2000,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    zIndex: 999,
+  },
+  searchRow: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  searchInputInHeader: {
+    flex: 1,
+    height: 40,
+    color: '#ffffff',
+    fontSize: 18,
+    paddingHorizontal: 10,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderRadius: 8,
+    marginRight: 10,
+  },
+  clearIcon: {
+    color: '#fff',
+    fontSize: 18,
+    marginRight: 10,
   },
   title: {
     flex: 1,
@@ -40,11 +73,6 @@ export const styles = StyleSheet.create({
   rightIcons: {
     flexDirection: 'row',
     alignItems: 'center',
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'flex-start',
   },
   menuContainer: {
     backgroundColor: 'white',
@@ -100,5 +128,53 @@ export const styles = StyleSheet.create({
   },
   themeIcon: {
     fontSize: 20,
-  }
+  },
+  resultItem: {
+    padding: 15,
+    borderBottomWidth: 0.5,
+    borderBottomColor: 'rgba(0,0,0,0.1)',
+  },
+  resultTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  resultSubtitle: {
+    fontSize: 12,
+    color: '#888',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)', // Затемнение фона
+    paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 0) + 56 : 60, // Чтобы плашка была сразу ПОД хедером
+  },
+  searchDropdown: {
+    position: 'absolute',
+    top: Platform.OS === 'android' ? (StatusBar.currentHeight || 0) + 56 : 60,
+    left: 10,
+    right: 10,
+    borderRadius: 8,
+    elevation: 10,
+    shadowColor: '#000',
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    maxHeight: 300,
+    zIndex: 2000,
+    backgroundColor: '#1a1a1a', // Или любой солидный цвет без прозрачности
+  },
+  infoText: {
+    padding: 20,
+    textAlign: 'center',
+    color: '#888',
+    fontSize: 14,
+  },
+  emptyContainer: {
+    padding: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emptyIcon: {
+    fontSize: 30,
+    marginBottom: 10,
+    opacity: 0.5,
+  },
 });

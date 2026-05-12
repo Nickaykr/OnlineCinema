@@ -27,7 +27,7 @@ export default function MediaDetailScreen() {
   const { theme } = useTheme();
   const styles = getStyles(theme);
   
-  const userId = user?.id;
+  const userId = user?.user_id;
 
   const [selectedSeason, setSelectedSeason] = useState<any>(null);
   const [selectedEpisode, setSelectedEpisode] = useState<any>(null);
@@ -383,9 +383,9 @@ export default function MediaDetailScreen() {
             <View style={styles.infoRow}>
               <Text style={styles.infoKey}>Жанры</Text>
               <View style={styles.genresList}>
-                {media.genres?.map((genre, index) => (
+                {media.genres?.map((genre: any, index: number) => (
                   <TouchableOpacity key={index} style={styles.genreChip}>
-                    <Text style={styles.genreChipText}>{genre}</Text>
+                    <Text style={styles.genreChipText}>{genre.name}</Text>
                   </TouchableOpacity>
                 ))}
               </View>

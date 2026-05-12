@@ -15,7 +15,6 @@ export default function MainScreen() {
   const { theme } = useTheme(); 
   const styles = getStyles(theme);
   
-
   const handleSeeAll = (category: string, title: string) => {
     router.push(`/${category}?title=${encodeURIComponent(title)}`);
   };
@@ -31,7 +30,6 @@ export default function MainScreen() {
   return (
     <View style={styles.container}>
       
-
       <Header
         title="Главная"
         onMenuPress={handleMenuPress}

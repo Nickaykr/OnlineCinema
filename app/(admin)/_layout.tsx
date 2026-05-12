@@ -3,6 +3,7 @@ import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native';
 import { useAuth } from '../../src/context/AuthContext';
 import { useTheme } from '../../src/context/ThemeContext';
 
+
 export default function AdminLayout() {
   const { user, isLoading } = useAuth();
   const { isDark, toggleTheme } = useTheme();
@@ -34,7 +35,7 @@ export default function AdminLayout() {
             style={{ marginRight: 15, padding: 5 }}
           >
             <Text style={{ fontSize: 20 }}>
-              {isDark ? '☀️' : '🌙'}
+              {isDark ? '🌙' : '☀️'}
             </Text>
           </TouchableOpacity>
         ),

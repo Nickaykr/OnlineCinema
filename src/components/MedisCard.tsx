@@ -2,6 +2,7 @@ import { router } from 'expo-router';
 import React from 'react';
 import { Dimensions, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { MediaRelease } from '../../types/media.types';
+import { useTheme } from '../context/ThemeContext';
 import { CONFIG } from '../services/constants';
 
 interface MediaCardProps {
@@ -15,6 +16,8 @@ const { width } = Dimensions.get('window');
 const MovieCard: React.FC<MediaCardProps> = ({ MediaRelease, size }) => {
   const SERVER_URL = CONFIG.SERVER_URL;
   const ASPECT_RATIO = 1.5;
+  const { theme } = useTheme(); 
+  const styles = getStyles(theme);
 
   const item = MediaRelease as unknown as MediaRelease;
 
@@ -139,9 +142,9 @@ const MovieCard: React.FC<MediaCardProps> = ({ MediaRelease, size }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (theme: any) => StyleSheet.create({
   card: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: theme.cardBackground,
     borderRadius: 12,
     marginBottom: 16,
     overflow: 'hidden',
@@ -153,7 +156,7 @@ const styles = StyleSheet.create({
   },
   posterContainer: {
     position: 'relative',
-    backgroundColor: '#2a2a2a',
+    backgroundColor: theme.backgroundSecondary,
     aspectRatio: 2/3,
   },
   poster: {
@@ -163,7 +166,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 8,
     left: 8,
-    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    backgroundColor: theme.star,
     paddingHorizontal: 6,
     paddingVertical: 3,
     borderRadius: 8,
@@ -171,7 +174,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   ratingText: {
-    color: '#fff',
+    color: theme.text,
     fontSize: 10,
     fontWeight: 'bold',
   },
@@ -179,7 +182,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 8,
     right: 8,
-    backgroundColor: 'rgba(255, 59, 48, 0.9)',
+    backgroundColor: theme.accent,
     paddingHorizontal: 6,
     paddingVertical: 3,
     borderRadius: 6,
@@ -189,7 +192,7 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   ageText: {
-    color: '#fff',
+    color: theme.text,
     fontSize: 10,
     fontWeight: 'bold',
   },
@@ -211,7 +214,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 14,
     fontWeight: 'bold',
-    color: '#fff',
+    color: theme.text,
     marginBottom: 6,
     lineHeight: 18,
   },
@@ -222,29 +225,29 @@ const styles = StyleSheet.create({
   },
   metaText: {
     fontSize: 12,
-    color: '#888',
+    color: theme.textSecondary,
   },
   metaSeparator: {
     fontSize: 12,
-    color: '#888',
+    color: theme.textSecondary,
     marginHorizontal: 4,
   },
   description: {
     fontSize: 11,
-    color: '#ccc',
+    color: theme.textSecondary,
     lineHeight: 14,
   },
   ratingBar: {
     marginTop: 8,
     height: 20,
-    backgroundColor: '#333',
+    backgroundColor: theme.backgroundSecondary,
     borderRadius: 10,
     overflow: 'hidden',
     position: 'relative',
   },
   ratingFill: {
     height: '100%',
-    backgroundColor: '#ffd700',
+    backgroundColor: theme.star,
     borderRadius: 10,
   },
   ratingBarText: {
@@ -254,7 +257,7 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     textAlign: 'center',
-    color: '#000',
+    color: theme.text,
     fontSize: 10,
     fontWeight: 'bold',
     lineHeight: 20,
