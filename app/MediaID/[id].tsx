@@ -1,8 +1,12 @@
+import { MaterialIcons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
-  Dimensions, Image, Platform, ScrollView, StyleSheet, Text,
+  Dimensions,
+  FlatList,
+  Image,
+  Platform, ScrollView, StyleSheet, Text,
   TextInput,
   TouchableOpacity, View
 } from 'react-native';
@@ -12,7 +16,7 @@ import SideMenu from '../../src/components/SideMenu';
 import { useAuth } from '../../src/context/AuthContext';
 import { useTheme } from '../../src/context/ThemeContext';
 import { useMediaById } from '../../src/hooks/useMedia';
-import { commentAPI, userAPI } from '../../src/services/api';
+import { commentAPI, listAPI, userAPI } from '../../src/services/api';
 import { CONFIG } from '../../src/services/constants';
 import { MediaComment } from '../../types/media.types';
 
@@ -28,6 +32,7 @@ export default function MediaDetailScreen() {
   const styles = getStyles(theme);
   
   const userId = user?.user_id;
+  const SERVER_URL = CONFIG.SERVER_URL;
 
   const [selectedSeason, setSelectedSeason] = useState<any>(null);
   const [selectedEpisode, setSelectedEpisode] = useState<any>(null);
@@ -35,6 +40,7 @@ export default function MediaDetailScreen() {
   const [selectedSource, setSelectedSource] = useState<any>(null);
   //Отслеживания состония кнопки "Показать полностью"
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
 
   const [selectedRating, setSelectedRating] = useState(media?.user_rating || 0);
   const [isHovering, setIsHovering] = useState(false);
@@ -43,10 +49,25 @@ export default function MediaDetailScreen() {
   const [userCommentId, setUserCommentId] = useState<number | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [comments, setComments] = useState<MediaComment[]>([]);
+  const [statuses, setStatuses] = useState<{statuses_id: number, name: string}[]>([]);
+  const [currentStatus, setCurrentStatus] = useState<number | null>(null);
+  const [currentStatusName, setCurrentStatusName] = useState<string | null>(null);
 
   const toggleExpanded = () => {
     setIsExpanded(!isExpanded);
   };
+
+  useEffect(() => {
+    const fetchStatuses = async () => {
+      try {
+        const data = await listAPI.getStatuses(); 
+        setStatuses(data);
+      } catch (error) {
+        console.error("Ошибка загрузки статусов:", error);
+      }
+    };
+    fetchStatuses();
+  }, []);
 
   useEffect(() => {
     if (media) {
@@ -54,6 +75,9 @@ export default function MediaDetailScreen() {
       if (media.user_rating !== undefined) {
         setSelectedRating(media.user_rating);
       }
+
+      setCurrentStatus(media.user_list_id || null);
+      setCurrentStatusName(media.user_list_name || "Добавить в список");
 
       fetchComments(id)
       // Определяем массив источников
@@ -79,8 +103,43 @@ export default function MediaDetailScreen() {
   const handleCloseMenu = () => {
     setIsMenuVisible(false); 
   };
-  
-  const SERVER_URL = CONFIG.SERVER_URL;
+
+  const handleStatusChange = async (statusId: number | string) => {
+    const finalStatusId = (statusId === 'clear') ? null : Number(statusId);
+
+    setCurrentStatus(finalStatusId);
+    setIsOpen(false);
+
+    if (statusId === 'clear' || statusId === null) {
+      try {
+        setCurrentStatus(null);
+        await listAPI.updateUserList(Number(id), null);
+        return; // Выходим из функции
+      } catch (e) {
+        alert("Ошибка при удалении");
+        return;
+      }
+    }
+
+    // Логика для обычных ID (чисел)
+    try {
+      const numericId = Number(statusId);
+      setCurrentStatus(numericId);
+      await listAPI.updateUserList(Number(id), numericId);
+    } catch (e) {
+      alert("Ошибка при сохранении");
+    }
+  };
+
+  const statusConfig: { [key: number]: { icon: any, color: string } } = {
+    1: { icon: 'play-circle-outline', color: '#4dff4d' }, // Смотрю
+    2: { icon: 'check-circle', color: '#4db8ff' },        // Просмотрено
+    3: { icon: 'pause-circle-filled', color: '#ffc107' }, // Отложено
+    4: { icon: 'highlight-off', color: '#ff4d4d' },       // Брошено
+    5: { icon: 'schedule', color: '#ccc' },              // Запланировано
+    6: { icon: 'replay', color: '#a34dff' },              // Пересматриваю
+  };
+
 
   const getPosterUrl = (posterPath: string | null): string => {
     if (!posterPath) return '';
@@ -285,6 +344,11 @@ export default function MediaDetailScreen() {
     }
   };
 
+  const dropdownData = [
+    ...statuses,
+    { statuses_id: 'clear', name: 'Удалить из списка', isClearButton: true }
+  ];
+
   return (
     <View style={styles.container}>
       <Header 
@@ -298,12 +362,68 @@ export default function MediaDetailScreen() {
           styles.heroSection,
           Platform.OS === 'web' ? styles.heroSectionWeb : styles.heroSectionMobile
         ]}>
-          <Image 
-            source={{ 
-              uri: getPosterUrl(media.poster_url)
-            }} 
-            style={styles.poster}
-          />
+          <View style={styles.leftColumn}>
+            <Image 
+              source={{ uri: getPosterUrl(media.poster_url) }} 
+              style={styles.poster}
+            />
+
+            <View style={styles.statusContainer}>
+              <TouchableOpacity 
+                  style={styles.statusDropdownButton}
+                  onPress={() => setIsOpen(!isOpen)} // Просто переключаем видимость
+                  activeOpacity={0.7}
+                >
+                  <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+                    {/* Иконка на кнопке */}
+                    <MaterialIcons 
+                      name={currentStatus ? statusConfig[currentStatus as number]?.icon : 'add-circle-outline'} 
+                      size={22} 
+                      color={currentStatus ? statusConfig[currentStatus as number]?.color : '#aaa'} 
+                      style={{ marginRight: 10 }} 
+                    />
+                  <Text style={styles.statusDropdownText}>
+                    {currentStatus 
+                      ? (statuses.find(s => s.statuses_id === currentStatus)?.name || "Выбрать статус")
+                      : "Добавить в список"
+                    }
+                  </Text>
+                </View>
+                <Text style={styles.dropdownArrow}>{isOpen ? '▲' : '▼'}</Text>
+              </TouchableOpacity>
+              {isOpen && (
+                <View style={styles.dropdownListContainer}>
+                  <FlatList
+                    data={dropdownData}
+                    keyExtractor={(item) => item.statuses_id.toString()}
+                    renderItem={({ item }) => {
+                      const isClearAction = 'isClearButton' in item && item.isClearButton;
+                      
+
+                      return (
+                        <TouchableOpacity 
+                          style={styles.dropdownItem} 
+                          onPress={() => {
+                            handleStatusChange(item.statuses_id);
+                            setIsOpen(false);
+                          }}
+                        >
+                          <Text style={[
+                            styles.dropdownItemText, 
+                            isClearAction && { color: '#ff4d4d', fontWeight: 'bold' } // Красный цвет
+                          ]}>
+                            {item.name}
+                          </Text>
+                        </TouchableOpacity>
+                      );
+                    }}
+                    // Чтобы список не прокручивал всю страницу на вебе
+                    scrollEnabled={true}
+                  />
+                </View>
+              )}
+            </View>
+          </View>
 
           <View style={styles.heroContent }>
             <View style={styles.titleContainer}>
@@ -589,6 +709,30 @@ export default function MediaDetailScreen() {
 }
 
 const getStyles = (theme: any) => StyleSheet.create({
+  dropdownItem: {
+    padding: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.buttonBackground,
+    backgroundColor: theme.buttonBackground,
+    
+  },
+  dropdownItemText: {
+    color: theme.textButton,
+    fontSize: 16,
+  },
+  dropdownMenu: {
+    width: 250,
+    backgroundColor: '#222', // Оставляем темным само меню
+    borderRadius: 8,
+    // Добавь тень, чтобы меню выделялось на фоне без затемнения
+    elevation: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.5,
+    shadowRadius: 10,
+    borderWidth: 1,
+    borderColor: '#444', // Легкая рамка для четкости
+  },
   scrollContent: {
     paddingBottom: 60, 
   },
@@ -631,11 +775,13 @@ const getStyles = (theme: any) => StyleSheet.create({
         marginRight: 0,
         marginBottom: 20,
       }
-    })
+    }),
+    marginBottom: 10,
   },
   heroContent: {
     flex: 1,
     gap: 12,
+    zIndex: 1,
   },
   infoRow: {
     flexDirection: 'row',
@@ -747,6 +893,7 @@ const getStyles = (theme: any) => StyleSheet.create({
     flexDirection: 'row',
     padding: 20,
     alignItems: 'flex-start',
+    zIndex: 1000,
   },
   // Для мобильных 
   heroSectionMobile: {
@@ -983,5 +1130,107 @@ const getStyles = (theme: any) => StyleSheet.create({
   spoilerText: {
     color: '#ccc',
     fontSize: 16,
+  },
+  // Контейнер для всей секции списков
+  statusContainer: {
+    zIndex: 200,
+    width: '100%',
+    paddingHorizontal: 0,
+    marginVertical: 0,
+    backgroundColor: 'transparent', // Сам контейнер прозрачный
+    overflow: 'visible',
+  },
+  // Контейнер прокрутки кнопок
+  statusList: {
+    flexDirection: 'row',
+  },
+  // Базовый стиль кнопки
+  statusButton: {
+    backgroundColor: '#2a2a2a', // Темно-серый фон для неактивных
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20, // Овальная форма
+    marginRight: 10,
+    borderWidth: 1,
+    borderColor: '#3a3a3a',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  // Стиль для выбранной кнопки
+  statusButtonActive: {
+    backgroundColor: '#e50914', // Красный акцент (как у Netflix)
+    borderColor: '#e50914',
+    // Тень для эффекта свечения (только iOS)
+    shadowColor: '#e50914',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.5,
+    shadowRadius: 5,
+    // Тень для Android
+    elevation: 5,
+  },
+  // Базовый текст кнопки
+  statusText: {
+    color: '#bbbbbb',
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  // Текст в активной кнопке
+  statusTextActive: {
+    color: '#ffffff',
+    fontWeight: 'bold',
+  },
+  posterWrapper: {
+    alignItems: 'center',
+    width: 340, // Должно совпадать с шириной постера
+    marginRight: Platform.OS === 'web' ? 20 : 0,
+    zIndex: 1000, // Очень важно для того, чтобы список был поверх всего
+    position: 'relative',
+  },
+  dropdownListContainer: {
+    position: 'absolute',
+    top: '100%', // Начинается сразу под кнопкой
+    left: 0,
+    right: 0,
+    backgroundColor: theme.buttonBackground, // Темный фон как на image_e01ef8.jpg
+    borderRadius: 4,
+    marginTop: 4, // Небольшой зазор
+    maxHeight: 250, // Чтобы список не ушел за пределы экрана
+    overflow: 'hidden', // Чтобы углы FlatList не вылезали за borderRadius
+    zIndex: 9999,
+    
+    // Тени, чтобы список "парил" над контентом
+    elevation: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 5 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    borderWidth: 1,
+    borderColor: '#444',
+  },
+  statusDropdownButton: {
+    backgroundColor: theme.buttonBackground, 
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 15,
+    paddingVertical: 12,
+    borderRadius: 4,
+    width: '100%',
+  },
+  statusDropdownText: {
+    color: theme.textButton,
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  dropdownArrow: {
+    color: theme.textButton,
+    fontSize: 12,
+  },
+  leftColumn: {
+    width: 340, // Ширина должна быть как у постера
+    alignItems: 'flex-start',
+    // На вебе даем отступ справа, чтобы текст не прилипал
+    marginRight: Platform.OS === 'web' ? 25 : 0, 
+    zIndex: 100,
   },
 });

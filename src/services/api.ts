@@ -345,6 +345,22 @@ export const subscriptionAPI = {
   },
 };
 
+export const listAPI = {
+  // Получаем все возможные статусы 
+  getStatuses: async () => {
+    const response = await api.get(`/media/statuses`);
+    return response.data;
+  },
+  // Обновляем или добавляем медиа в список пользователя
+  updateUserList: async (seasonId: number, statusId: number | null) => {
+    const response = await api.post(`/media/user-lists`, {
+      season_id: seasonId,
+      status_id: statusId,
+    });
+    return response.data;
+  }
+};
+
 
 
 

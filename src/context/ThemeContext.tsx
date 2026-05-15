@@ -14,6 +14,8 @@ export const themeColors = {
     input: '#2a2a2a',
     shadow: '#000',
     cardBackground: '#2e2b2bff',
+    buttonBackground: '#fefefe',
+    textButton: '#1a1a1a'
   },
   light: {
     background: '#F5F5F5',
@@ -26,6 +28,8 @@ export const themeColors = {
     input: '#fff',
     shadow: '#000',
     cardBackground: '#F9F9F9',
+    buttonBackground: '#1c1c1e',
+    textButton: '#fdfdfd' 
   }
 };
 

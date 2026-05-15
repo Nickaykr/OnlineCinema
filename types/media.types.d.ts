@@ -56,6 +56,8 @@ export interface Season {
   average_rating?: number;
   total_votes?: number;
   user_rating?: number; 
+  user_list_id?: number;
+  user_list_name?: string;
 }
 
 export type MediaRelease = Media & Season & {
