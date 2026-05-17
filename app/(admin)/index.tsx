@@ -10,7 +10,7 @@ export default function AdminDashboard() {
   const menuItems = [
     { title: 'Статистика', icon: '📊', route: '/(admin)/stats', count: '154 юзера' },
     { title: 'Промокоды', icon: '🎟️', route: '/(admin)/promos', count: '5 активных' },
-    { title: 'Медиа', icon: '🎬', route: '/(admin)/movies', count: '120 позиций' },
+    { title: 'Медиа', icon: '🎬', route: '/(admin)/admin-movies', count: '120 позиций' },
     { title: 'Пользователи', icon: '👥', route: '/(admin)/users', count: 'Управление' },
   ];
 
