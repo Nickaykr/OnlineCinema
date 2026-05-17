@@ -3,7 +3,6 @@ import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
-  Dimensions,
   FlatList,
   Image,
   Platform, ScrollView, StyleSheet, Text,
@@ -12,6 +11,7 @@ import {
 } from 'react-native';
 import WebView from 'react-native-webview';
 import Header from '../../src/components/Header';
+import WebPlayer from '../../src/components/pleer';
 import SideMenu from '../../src/components/SideMenu';
 import { useAuth } from '../../src/context/AuthContext';
 import { useTheme } from '../../src/context/ThemeContext';
@@ -20,9 +20,6 @@ import { commentAPI, listAPI, userAPI } from '../../src/services/api';
 import { CONFIG } from '../../src/services/constants';
 import { MediaComment } from '../../types/media.types';
 
-const { width: screenWidth } = Dimensions.get('window');
-const VIDEO_WIDTH = screenWidth > 800 ? 800 : screenWidth - 40; 
-const VIDEO_HEIGHT = (VIDEO_WIDTH * 9) / 16;
 
 export default function MediaDetailScreen() {
   const { id } = useLocalSearchParams();
@@ -34,10 +31,8 @@ export default function MediaDetailScreen() {
   const userId = user?.user_id;
   const SERVER_URL = CONFIG.SERVER_URL;
 
-  const [selectedSeason, setSelectedSeason] = useState<any>(null);
-  const [selectedEpisode, setSelectedEpisode] = useState<any>(null);
   const [isMenuVisible, setIsMenuVisible] = useState(false);
-  const [selectedSource, setSelectedSource] = useState<any>(null);
+
   //Отслеживания состония кнопки "Показать полностью"
   const [isExpanded, setIsExpanded] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
@@ -52,6 +47,8 @@ export default function MediaDetailScreen() {
   const [statuses, setStatuses] = useState<{statuses_id: number, name: string}[]>([]);
   const [currentStatus, setCurrentStatus] = useState<number | null>(null);
   const [currentStatusName, setCurrentStatusName] = useState<string | null>(null);
+  const [selectedEpisodeNumber, setSelectedEpisodeNumber] = useState<number>(1); // Номер текущей серии
+  const [selectedSource, setSelectedSource] = useState<any>(null); // Активный плеер
 
   const toggleExpanded = () => {
     setIsExpanded(!isExpanded);
@@ -80,21 +77,46 @@ export default function MediaDetailScreen() {
       setCurrentStatusName(media.user_list_name || "Добавить в список");
 
       fetchComments(id)
-      // Определяем массив источников
-      let potentialSources = media.type === 'tv_series' 
-        ? selectedEpisode?.sources 
-        : media.video;
 
-      const videoSources = potentialSources?.filter((s: any) => s.type_name !== 'trailer') || [];
+      // ЕСЛИ ЭТО СЕРИАЛ: Автоматически выбираем самую первую серию первого сезона при загрузке
+      if (media.type === 'tv_series' && media.video && media.video.length > 0) {
+        const episodesOnly = media.video?.filter((s: any) => s.type_name === 'episode') || [];
+        
+        if (episodesOnly.length > 0 && !selectedEpisodeNumber) {
+          setSelectedEpisodeNumber(1);
+        }
+      }
+    }
+  }, [media]); 
 
-      // 4. Устанавливаем выбранный источник
+  useEffect(() => {
+    if (media && media.video) {
+      let videoSources = [];
+
+      if (media.type === 'tv_series') {
+        // Ищем все плееры, используя РЕАЛЬНОЕ поле episode_number, которое теперь прилетает с бэка!
+        videoSources = media.video.filter(
+          (s: any) => s.type_name === 'episode' && s.episode_number === selectedEpisodeNumber
+        );
+      } else {
+        // Для фильмов отсекаем трейлеры и берем только полноценные плееры (movie или full)
+        videoSources = media.video.filter(
+          (s: any) => s.type_name === 'movie'  || s.type_name !== 'trailer'
+        );
+      }
+
+      // Устанавливаем выбранный плеер
       if (videoSources.length > 0) {
-        setSelectedSource(videoSources[0]);
+        // Если текущий выбранный плеер не подходит под эту серию/фильм, ставим первый доступный
+        const isCurrentSourceValid = videoSources.some((s: any) => s.url === selectedSource?.url);
+        if (!isCurrentSourceValid) {
+          setSelectedSource(videoSources[0]);
+        }
       } else {
         setSelectedSource(null);
       }
     }
-  }, [media, selectedEpisode]); 
+  }, [media, selectedEpisodeNumber]);
 
   const handleMenuPress = () => {
     setIsMenuVisible(true); 
@@ -169,10 +191,6 @@ export default function MediaDetailScreen() {
     );
   }
 
-  // Фильтруем основные плееры (фильм или серия)
-  const videoSources = media.type === 'tv_series' 
-    ? selectedEpisode?.sources?.filter((s: any) => s.source_type !== 'trailer')
-    : media.video?.filter((s: any) => s.source_type !== 'trailer');
 
   // Фильтруем трейлеры и кадры
   const mediaContent = [
@@ -180,59 +198,30 @@ export default function MediaDetailScreen() {
     ...(media.extras?.filter(item => item.type_name === 'screenshot') || [])
   ];
 
-  const renderExternalPlayer = (url: string | null, customHeight?: number) => {
-      if (!url) {
-        return (
-          <View style={[styles.playerPlaceholder, customHeight ? { height: customHeight } : { height: VIDEO_HEIGHT }]}>
-            <Text style={styles.noVideoText}>Видео временно недоступно</Text>
-          </View>
-        );
-      }
-
+  const renderExternalPlayer = (url: string | null) => {
+    if (!url) {
       return (
-        <View style={[styles.playerContainer, { height: customHeight || VIDEO_HEIGHT }]}>
-          {Platform.OS === 'web' ? (
-            <iframe
-              src={url}
-              style={{ width: '100%', height: '100%', border: 'none' }}
-              allowFullScreen
-              allow="autoplay; encrypted-media; fullscreen"
-            />
-          ) : (
-            <WebView
-              source={{ uri: url }}
-              style={{ flex: 1, backgroundColor: '#000' }}
-              javaScriptEnabled={true}
-              domStorageEnabled={true}
-              allowsFullscreenVideo={true}
-            />
-          )}
+        <View style={styles.playerPlaceholder}>
+          <Text style={styles.noVideoText}>Видео временно недоступно</Text>
         </View>
       );
-    };
-
-  const renderSourcePicker = (sources: any[], currentSource: any, onSelect: (s: any) => void, label: string) => {
-    if (!sources || sources.length <= 1) return null;
+    }
 
     return (
-      <View style={styles.pickerContainer}>
-        <Text style={styles.pickerLabel}>{label}:</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.pickerScroll}>
-          {sources.map((source, index) => (
-            <TouchableOpacity
-              key={index}
-              style={[
-                styles.pickerBtn, 
-                currentSource?.url === source.url && styles.pickerBtnActive
-              ]}
-              onPress={() => onSelect(source)}
-            >
-              <Text style={styles.pickerBtnText}>
-                {source.player_name?.toUpperCase()}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
+
+      <View style={{ width: '100%', height: '100%' }}>
+        {Platform.OS === 'web' ? (
+          
+          <WebPlayer url={`${url}?behavior=fit&padding=false`} />
+        ) : (
+          <WebView
+            source={{ uri: url }}
+            style={{ flex: 1, backgroundColor: '#000' }}
+            javaScriptEnabled={true}
+            domStorageEnabled={true}
+            allowsFullscreenVideo={true}
+          />
+        )}
       </View>
     );
   };
@@ -271,7 +260,7 @@ export default function MediaDetailScreen() {
       const response = await userAPI.setMediaRating(Number(id), score);
 
     } catch (error) {
-      // 3. Откат, если что-то пошло не так
+      //Откат, если что-то пошло не так
       setSelectedRating(previousRating);
       console.error("Ошибка при сохранении оценки:", error);
       alert("Не удалось сохранить оценку. Проверьте соединение.");
@@ -279,7 +268,7 @@ export default function MediaDetailScreen() {
   };
 
   const getRatingColor = (rating: number) => {
-    if (rating === 0) return '#fff'; 
+    if (rating === 0) return theme.text ; 
     if (rating <= 3) return '#ff4d4d'; 
     if (rating <= 7) return '#ffc107';
     return '#4dff4d'; 
@@ -490,13 +479,16 @@ export default function MediaDetailScreen() {
 
             {media.type === 'tv_series' && media.seasons && (
               <View style={styles.infoRow}>
-                <Text style={styles.infoKey}>Cезонов: </Text>
+                <Text style={styles.infoKey}>Cезонов </Text>
                 <Text style={styles.infoValue}>{media.seasons.length}</Text>
               </View>
-            )}
+            )} 
 
-            {media.type === 'tv_series' && selectedSeason?.episode_count && (
-              <Text style={styles.type}>Серий в сезоне: {selectedSeason.episode_count} / {}</Text>
+            {media.type === 'tv_series' && (
+              <View style={styles.infoRow}>
+                <Text style={styles.infoKey}>Серий в сезоне </Text>
+                <Text style={styles.infoValue}>{media.episode_count || 'N/A'}</Text>
+              </View>
             )}
 
             {/* Жанры в виде интерактивных тегов */}
@@ -625,7 +617,7 @@ export default function MediaDetailScreen() {
                   {item.type_name === 'trailer' ? (
                     // Трейлер (Плеер)
                     <View style={styles.trailerWrapper}>
-                      {renderExternalPlayer(item.url, 280)}
+                      {renderExternalPlayer(item.url)}
                     </View>
                   ) : (
                     // Скриншот
@@ -643,24 +635,145 @@ export default function MediaDetailScreen() {
           </View>
         )}
 
-        <View style={styles.videoSection}>
-          <Text style={styles.sectionTitle}>
-            {media.type === 'tv_series' ? `Смотреть: ${selectedEpisode?.title}` : `Смотреть онлайн: ${displayTitle}`}
-          </Text>
+        {/* --- СЕКЦИЯ ВИДЕОПЛЕЕРА --- */}
+        <View style={styles.mainPlayerRow}>
           
-          {renderSourcePicker(videoSources, selectedSource, setSelectedSource, "Выберите плеер")}
+          {/* ЛЕВАЯ ЧАСТЬ: Сам плеер и заголовок */}
+          <View style={styles.leftPlayerColumn}>
+            <Text style={styles.sectionTitle}>
+              {media.type === 'tv_series' 
+                ? `Смотреть: Серия ${selectedEpisodeNumber}` 
+                : `Смотреть онлайн: ${media.main_title}`}
+            </Text>
 
-          <View style={styles.playerCenteredWrapper}>
-            {selectedSource ? (
-              renderExternalPlayer(selectedSource.url)
-            ) : (
-              <View style={styles.playerPlaceholder}>
-                <Text style={styles.noVideoText}>Плееры еще не добавлены</Text>
-              </View>
-            )}
+            {/* ДОБАВЛЯЕМ ИНФОРМАЦИЮ О СЕРИИ ИЛИ ФИЛЬМЕ */}
+            {media.video && (() => {
+              // Находим нужный объект в зависимости от типа
+              const currentMediaData = media.type === 'tv_series'
+                ? media.video.find((v: any) => v.type_name === 'episode' && v.episode_number === selectedEpisodeNumber) as any
+                : media.video.find((v: any) => v.type_name === 'movie' || v.type_name === 'full') as any;
+
+              // Если данных нет, просто не выводим текстовые метаданные, но плеер не блокируем
+              if (!currentMediaData) return null;
+
+              // Для сериалов выводим название серии и дату
+              if (media.type === 'tv_series') {
+                return (
+                  <View style={styles.episodeMetaContainer}>
+                    {currentMediaData.title && (
+                      <Text style={styles.episodeTitleText}>«{currentMediaData.title}»</Text>
+                    )}
+                    {currentMediaData.release_date && (
+                      <Text style={styles.episodeDateText}>
+                        Премьера: {new Date(currentMediaData.release_date).toLocaleDateString('ru-RU', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric'
+                        })}
+                      </Text>
+                    )}
+                  </View>
+                );
+              }
+
+              // Для фильмов (все ситуации, когда это не tv_series)
+              if (currentMediaData.release_date) {
+                return (
+                  <View style={styles.episodeMetaContainer}>
+                    <Text style={styles.episodeDateText}>
+                      Премьера в мире: {new Date(currentMediaData.release_date).toLocaleDateString('ru-RU', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                      })}
+                    </Text>
+                  </View>
+                );
+              }
+
+              return null;
+            })()}
+            
+            {/* Сам контейнер с плеером */}
+            <View style={styles.playerCenteredWrapper}>
+              {selectedSource ? (
+                renderExternalPlayer(selectedSource.url)
+              ) : (
+                <View style={styles.playerPlaceholder}>
+                  <Text style={styles.noVideoText}>Видео временно недоступно</Text>
+                </View>
+              )}
+            </View>
           </View>
-        </View >
 
+          {/* ПРАВАЯ ЧАСТЬ: Выбор доступных плееров*/}
+          <View style={styles.rightSidebarColumn}>
+            <Text style={styles.sidebarTitle}>Доступные плееры:</Text>
+            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.sidebarScroll}>
+              {media.video && media.video
+                .filter((source: any) => {
+                  // Показываем плеер, только если его номер серии совпадает со взятым на фронте
+                  return source.type_name === 'episode' && source.episode_number === selectedEpisodeNumber;
+                })
+                .map((source: any, index: number) => (
+                  <TouchableOpacity
+                    key={index}
+                    style={[
+                      styles.sidebarPlayerBtn,
+                      selectedSource?.url === source.url && styles.sidebarPlayerBtnActive
+                    ]}
+                    onPress={() => setSelectedSource(source)}
+                  >
+                    <Text style={[
+                      styles.sidebarPlayerBtnText,
+                      selectedSource?.url === source.url && styles.sidebarPlayerBtnTextActive
+                    ]}>
+                      {source.player_name?.toUpperCase() || `Плеер ${index + 1}`}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+            </ScrollView>
+          </View>
+
+        </View>
+
+        {/* НИЖНЯЯ ЧАСТЬ: Выбор серий */}
+        {media.type === 'tv_series' && media.video && (
+          <View style={styles.bottomEpisodesContainer}>
+            <Text style={styles.episodesTitle}>Выберите серию:</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.episodesScroll}>
+              {(() => {
+                // Достаем номера серий. Если e.episode_number нет, временно ставим 1
+                const allEpisodeNumbers = media.video
+                  .filter((s: any) => s.type_name === 'episode')
+                  .map((s: any) => s.episode_number); 
+
+                // Оставляем только уникальные: [1, 2]
+                const uniqueEpisodes = Array.from(new Set(allEpisodeNumbers)).sort((a: any, b: any) => a - b);
+
+                return uniqueEpisodes.map((episodeNum: any) => (
+                  <TouchableOpacity
+                    key={episodeNum}
+                    style={[
+                      styles.episodeButton,
+                      selectedEpisodeNumber === episodeNum && styles.activeEpisodeButton
+                    ]}
+                    onPress={() => setSelectedEpisodeNumber(episodeNum)}
+                  >
+                    <Text style={[
+                      styles.episodeButtonText,
+                      selectedEpisodeNumber === episodeNum && styles.activeEpisodeButtonText
+                    ]}>
+                      {episodeNum}
+                    </Text>
+                  </TouchableOpacity>
+                ));
+              })()}
+            </ScrollView>
+          </View>
+        )}
+
+        
         <View style={styles.commentFormSection}>
           <Text style={styles.sectionTitle}>
             {isEditing ? "Редактировать ваш отзыв" : "Оставить комментарий"}
@@ -957,13 +1070,6 @@ const getStyles = (theme: any) => StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
   },
-  playerCenteredWrapper: {
-    width: VIDEO_WIDTH,       
-    height: VIDEO_HEIGHT,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 10,
-  },
   allCastLink: {
     color: theme.accent, 
     fontSize: 15,
@@ -1232,5 +1338,135 @@ const getStyles = (theme: any) => StyleSheet.create({
     // На вебе даем отступ справа, чтобы текст не прилипал
     marginRight: Platform.OS === 'web' ? 25 : 0, 
     zIndex: 100,
+  },
+  episodesContainer: {
+    marginTop: 10,
+    marginBottom: 20,
+    paddingHorizontal: 10,
+  },
+  activeEpisodeButton: {
+    backgroundColor: '#ff4d4d', // Выделяем активную серию фирменным красным
+    borderColor: '#ff4d4d',
+  },
+  episodeButtonText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  activeEpisodeButtonText: {
+    color: '#ffffff', // Текст остается белым, но на красном фоне
+  },
+  sidebarScroll: {
+    gap: 8, // Отступы между кнопками в сайдбаре
+  },
+  sidebarPlayerBtn: {
+    width: '100%',
+    paddingVertical: 12,
+    paddingHorizontal: 15,
+    backgroundColor: '#262626',
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#333',
+  },
+  sidebarPlayerBtnActive: {
+    backgroundColor: '#ff4d4d', // Выделение активного плеера как на референсе
+    borderColor: '#ff4d4d',
+  },
+  sidebarPlayerBtnText: {
+    color: '#eee',
+    fontSize: 14,
+    fontWeight: '600',
+    textAlign: 'left',
+  },
+  sidebarPlayerBtnTextActive: {
+    color: '#fff',
+  },
+  mainPlayerRow: {
+    flexDirection: 'row',
+    width: '100%',
+    paddingHorizontal: 15,
+    marginVertical: 10,
+    gap: 15,
+  },
+  leftPlayerColumn: {
+    flex: 3, // Занимает 75% ширины
+    flexDirection: 'column',
+    alignItems: 'stretch',
+  },
+  rightSidebarColumn: {
+    flex: 1, // Занимает 25% ширины
+    backgroundColor: theme.backgroundSecondary,
+    borderRadius: 8,
+    padding: 15,
+    borderWidth: 1,
+    borderColor: '#262626',
+    
+    // Заставляем сайдбар принять ТОЧНО ТАКУЮ ЖЕ высоту, как левый плеер + его заголовок
+    alignSelf: 'stretch',
+  },
+  
+  // Убедись, что WebView или iframe занимают всю высоту
+  playerCenteredWrapper: {
+    
+    // ДОБАВЬ ЭТИ ДВЕ СТРОЧКИ:
+    aspectRatio: 16 / 9, // Жестко задает пропорцию стандартного плеера 16:9
+    width: '100%',       // Растягивается во всю ширину колонки
+    
+    borderRadius: 8,
+    overflow: 'hidden',
+    backgroundColor: '#000000',
+  },
+ 
+  sidebarTitle: {
+    color: '#888', // Сделали чуть темнее
+    fontSize: 14,
+    fontWeight: '600',
+    marginBottom: 15, // Уменьшили отступ
+  },
+  bottomEpisodesContainer: {
+    width: '100%',
+    paddingHorizontal: 15,
+    
+    // ЭТО ПРИБЛИЖАЕТ СЕРИИ:
+    marginTop: -5, // Отрицательный marginTop, чтобы они "подтянулись" к плееру
+    marginBottom: 20,
+  },
+  episodesTitle: {
+    color: '#888',
+    fontSize: 14,
+    marginBottom: 8, // Уменьшили отступ
+  },
+  episodesScroll: {
+    paddingVertical: 5,
+  },
+  episodeButton: {
+    width: 50,
+    height: 45, // Сделали чуть аккуратнее
+    backgroundColor: '#222',
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 10,
+    borderWidth: 1,
+    borderColor: '#333',
+  },
+  episodeMetaContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    marginTop: 4,
+    marginBottom: 10,
+    gap: 12, // Отступ между названием и функцией даты
+  },
+  episodeTitleText: {
+    fontSize: 16,
+    fontWeight: '600',
+    // Цвет подстроится под тему: берем посветлее/заметный
+    color: theme.text, 
+  },
+  episodeDateText: {
+    fontSize: 14,
+    // Делаем дату приглушенной (серой), чтобы она не перетягивала внимание
+    color: '#888888', 
   },
 });

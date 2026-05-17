@@ -19,6 +19,7 @@ export const themeColors = {
   },
   light: {
     background: '#F5F5F5',
+    backgroundSecondary: 'rgba(255, 255, 255, 0.05)',
     card: '#FFFFFF',
     text: '#1a1a1a',
     textSecondary: '#888',

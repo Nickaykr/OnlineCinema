@@ -29,9 +29,7 @@ export interface Episode {
   episode_number: number;
   title: string;
   sources?: MediaSource[];
-  description?: string;
   duration?: number;
-  preview_image?: string;
   release_date?: string;
 }
 
