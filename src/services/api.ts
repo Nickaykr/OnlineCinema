@@ -334,8 +334,8 @@ export const subscriptionAPI = {
     return response.data;
   },  
 
-  subscribe: async (planId: number): Promise<{ success: boolean; message: string }> => {
-    const response = await api.post('/subscriptions/subscribe', { subscription_plans_id: planId });
+  subscribe: async (planId: number, code?: string): Promise<{ success: boolean; message: string }> => {
+    const response = await api.post('/subscriptions/subscribe', { subscription_plans_id: planId, promoCode: code });
     return response.data;
   },
 

@@ -18,8 +18,10 @@ export default function SubscriptionScreen() {
     const handleCloseMenu = () => setIsMenuVisible(false);
     const [activePlanId, setActivePlanId] = useState<number | null>(null);
     const { user } = useAuth();
-    const [promoCode, setPromoCode] = useState('');
+    
     const [discountPercent, setDiscountPercent] = useState(0);
+    const [activePromo, setActivePromo] = useState<string>('');
+    const [promoInput, setPromoInput] = useState<string>('');
 
     useEffect(() => {
       const fetchPlans = async () => {
@@ -43,15 +45,18 @@ export default function SubscriptionScreen() {
     }, [user]);
 
     const handleSubscribe = (planId: number, planName: string) => {
+      
 
       showConfirm(
           "Подтверждение",
           `Вы хотите активировать тариф "${planName}" на 1 месяц?`,
           async () => {
               try {
-                const res = await subscriptionAPI.subscribe(planId);
+                const res = await subscriptionAPI.subscribe(planId, activePromo || undefined);
                 if (res.success) {
                     showNotification("Теперь вам доступны все фильмы.", "success");
+                    setPromoInput('');
+                    setActivePromo('');
                     router.push('/')
                 }
               } catch (e) {
@@ -63,10 +68,13 @@ export default function SubscriptionScreen() {
     };
 
     const applyPromo = async () => {
+      if (!promoInput.trim()) return;
+
       try {
-        const res = await subscriptionAPI.setPromoCode(promoCode);
+        const res = await subscriptionAPI.setPromoCode(promoInput.trim());
         if (res.success && res.percent) {
           setDiscountPercent(res.percent);
+          setActivePromo(promoInput.trim());
           showNotification(`Промокод применен! Скидка: ${res.percent}%`, "success");
         }
       } catch (e) {
@@ -138,12 +146,20 @@ export default function SubscriptionScreen() {
               <TextInput 
                   style={styles.input} 
                   placeholder="Промокод" 
-                  onChangeText={setPromoCode}
+                   onChangeText={setPromoInput}
+                  value={promoInput}
               />
               <TouchableOpacity onPress={applyPromo} style={styles.applyButton}>
                   <Text>Применить</Text>
               </TouchableOpacity>
-          </View>
+              {activePromo ? (
+                <Text style={{ color: '#4CAF50', fontSize: 12, marginTop: 5 }}>
+                  ✓ Применен промокод: {activePromo}
+                </Text>
+              ) : null}
+            </View>
+
+            
              
            
           <SideMenu
@@ -158,7 +174,7 @@ const getStyles = (theme: any) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.background,
-    paddingTop: 40,
+    
   },
   title: {
     fontSize: 34,
@@ -167,6 +183,7 @@ const getStyles = (theme: any) => StyleSheet.create({
     textAlign: 'center',
     marginBottom: 20,
     marginTop: 40, 
+    paddingTop: 40,
   },
   listWrapper: {
     justifyContent: 'center', 
