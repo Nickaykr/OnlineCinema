@@ -28,7 +28,7 @@ export default function MediaDetailScreen() {
   const { theme } = useTheme();
   const styles = getStyles(theme);
   
-  const userId = user?.user_id;
+  const userId = user?.user_id || user?.id;
   const SERVER_URL = CONFIG.SERVER_URL;
 
   const [isMenuVisible, setIsMenuVisible] = useState(false);
@@ -54,6 +54,14 @@ export default function MediaDetailScreen() {
     setIsExpanded(!isExpanded);
   };
 
+  if (authLoading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: theme.background }}>
+          <ActivityIndicator size="large" color="#FF3B30" />
+      </View>
+    );
+  }
+
   useEffect(() => {
     const fetchStatuses = async () => {
       try {
@@ -76,7 +84,7 @@ export default function MediaDetailScreen() {
       setCurrentStatus(media.user_list_id || null);
       setCurrentStatusName(media.user_list_name || "Добавить в список");
 
-      fetchComments(id)
+      fetchComments(id, userId)
 
       // ЕСЛИ ЭТО СЕРИАЛ: Автоматически выбираем самую первую серию первого сезона при загрузке
       if (media.type === 'tv_series' && media.video && media.video.length > 0) {
@@ -87,7 +95,7 @@ export default function MediaDetailScreen() {
         }
       }
     }
-  }, [media]); 
+  }, [media, userId, id]); 
 
   useEffect(() => {
     if (media && media.video) {
@@ -274,12 +282,12 @@ export default function MediaDetailScreen() {
     return '#4dff4d'; 
   };
 
-  const fetchComments = async (id: string | string[]) => {
+  const fetchComments = async (id: string | string[], currentUserId: number | undefined) => {
     try {
       const data = await commentAPI.getComments(Number(id));
       setComments(data);
 
-      const myComment = data.find((c: any) => c.user_id === userId);
+      const myComment = data.find((c: any) => c.user_id === currentUserId);
       
       if (myComment) {
         setUserCommentId(myComment.id); 
@@ -296,6 +304,7 @@ export default function MediaDetailScreen() {
   };
 
   const handleSendComment = async () => {
+    
     if (comment.trim() === '') {
       alert("Комментарий не может быть пустым");
       return;
@@ -305,7 +314,7 @@ export default function MediaDetailScreen() {
       alert("Комментарий слишком короткий");
       return;
     }
-
+    console.log("Отправляем комментарий:", { comment, isSpoiler, season_id: id, userId, isAuth });
     if (!isAuth || !userId) {
       alert("Войдите в аккаунт, чтобы оставить отзыв");
       return;
@@ -324,10 +333,10 @@ export default function MediaDetailScreen() {
       if (response.success) {
         alert("Комментарий успешно добавлен!");
         setComment(""); 
-        fetchComments(id); 
+        fetchComments(id, userId); 
       }
     } catch (error: any) {
-      // Обработка того самого ограничения (один пользователь - один коммент)
+      // Обработка ограничения один пользователь - один коммент
       const errorMsg = error.response?.data?.message || "Ошибка при отправке";
       alert(errorMsg);
     }

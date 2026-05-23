@@ -68,6 +68,7 @@ api.interceptors.response.use(
 );
 
 export interface User {
+  id?: number;
   user_id: number;
   email: string;
   username: string;
@@ -110,6 +111,12 @@ export interface LoginCredentials {
   password: string;
   device_id?: string | null; 
   device_name?: string;
+}
+
+export interface CommunityRule {
+  rules_id: number;
+  title: string;
+  description: string;
 }
 
 export interface RegisterData extends LoginCredentials {
@@ -321,7 +328,7 @@ export const commentAPI = {
     return response.data;
   },
 
-  // Получение списка
+  // Получение комментариев для сезона
   getComments: async (season_id: number): Promise<MediaComment[]> => {
     const response = await api.get(`/comments/media/${season_id}`);
     return response.data.data; 
@@ -360,6 +367,13 @@ export const listAPI = {
     return response.data;
   }
 };
+
+export const moderationAPI = {
+    getRules: async (): Promise<CommunityRule[]> => {
+      const response = await api.get('/moderation/rules');
+      return response.data.data;;
+  }
+}
 
 
 

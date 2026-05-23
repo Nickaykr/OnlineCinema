@@ -40,6 +40,7 @@ const SideMenu: React.FC<SideMenuProps> = ({
     { label: 'Статистика', icon: '📊', onPress: () => router.push('/statistic') },
     { label: 'Аккаунт', icon: '👤', onPress: () => router.push('/account') },
     { label: 'О нас', icon: 'ℹ️', onPress: () => router.push('/about') },
+    { label: 'Правила сообщества', icon: '📜', onPress: () => router.push('/rules') },
   ];
 
   if (user?.role === 'Admin') {
@@ -91,6 +92,7 @@ const SideMenu: React.FC<SideMenuProps> = ({
         </ScrollView>
 
         <View style={styles.menuFooter}>
+          <Text style={styles.footerText}>© 2026 КиноБанда. Все права защищены.</Text>
           <Text style={styles.footerText}>Версия 1.0.0</Text>
         </View>
       </View>
