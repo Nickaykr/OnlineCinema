@@ -46,7 +46,6 @@ export default function SubscriptionScreen() {
 
     const handleSubscribe = (planId: number, planName: string) => {
       
-
       showConfirm(
           "Подтверждение",
           `Вы хотите активировать тариф "${planName}" на 1 месяц?`,
@@ -159,9 +158,6 @@ export default function SubscriptionScreen() {
               ) : null}
             </View>
 
-            
-             
-           
           <SideMenu
               isVisible={isMenuVisible}
               onClose={handleCloseMenu}
@@ -173,8 +169,7 @@ export default function SubscriptionScreen() {
 const getStyles = (theme: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.background,
-    
+    backgroundColor: theme.background, 
   },
   title: {
     fontSize: 34,

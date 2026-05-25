@@ -77,7 +77,7 @@ interface MediaExtra {
 }
 
 export interface MediaComment {
-  id: number;
+  comment_id: number;
   season_id: number;
   user_id: number;
   username: string;     
@@ -86,4 +86,8 @@ export interface MediaComment {
   created_at: string;
   is_spoiler: boolean;
   rating: number;
+  
+  likes_count: number;
+  dislikes_count: number;
+  my_reaction: number | null;
 }

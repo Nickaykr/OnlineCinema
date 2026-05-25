@@ -1,8 +1,9 @@
-import { MaterialIcons } from '@expo/vector-icons';
+import { MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   FlatList,
   Image,
   Platform, ScrollView, StyleSheet, Text,
@@ -10,6 +11,7 @@ import {
   TouchableOpacity, View
 } from 'react-native';
 import WebView from 'react-native-webview';
+import CommentCard from '../../src/components/commentCard';
 import Header from '../../src/components/Header';
 import WebPlayer from '../../src/components/pleer';
 import SideMenu from '../../src/components/SideMenu';
@@ -18,6 +20,7 @@ import { useTheme } from '../../src/context/ThemeContext';
 import { useMediaById } from '../../src/hooks/useMedia';
 import { commentAPI, listAPI, userAPI } from '../../src/services/api';
 import { CONFIG } from '../../src/services/constants';
+import { showConfirm, showNotification } from '../../src/utils/notifications';
 import { MediaComment } from '../../types/media.types';
 
 
@@ -49,6 +52,7 @@ export default function MediaDetailScreen() {
   const [currentStatusName, setCurrentStatusName] = useState<string | null>(null);
   const [selectedEpisodeNumber, setSelectedEpisodeNumber] = useState<number>(1); // Номер текущей серии
   const [selectedSource, setSelectedSource] = useState<any>(null); // Активный плеер
+  const [sortType, setSortType] = useState<'new' | 'old' | 'rating'>('new');
 
   const toggleExpanded = () => {
     setIsExpanded(!isExpanded);
@@ -95,7 +99,7 @@ export default function MediaDetailScreen() {
         }
       }
     }
-  }, [media, userId, id]); 
+  }, [media, userId, id, sortType]); 
 
   useEffect(() => {
     if (media && media.video) {
@@ -284,13 +288,13 @@ export default function MediaDetailScreen() {
 
   const fetchComments = async (id: string | string[], currentUserId: number | undefined) => {
     try {
-      const data = await commentAPI.getComments(Number(id));
-      setComments(data);
+      const res = await commentAPI.getComments(Number(id), currentUserId, sortType  );
+      setComments(res);
 
-      const myComment = data.find((c: any) => c.user_id === currentUserId);
+      const myComment = res.find((c: any) => c.user_id === currentUserId);
       
       if (myComment) {
-        setUserCommentId(myComment.id); 
+        setUserCommentId(myComment.comment_id); 
         setComment(myComment.text);    
         setIsSpoiler(myComment.is_spoiler);
         setIsEditing(true);             
@@ -340,6 +344,186 @@ export default function MediaDetailScreen() {
       const errorMsg = error.response?.data?.message || "Ошибка при отправке";
       alert(errorMsg);
     }
+  };
+
+  const handleLikeComment = async (commentId: number) => {
+    try {
+      await commentAPI.toggleReaction(commentId, 1); 
+      fetchComments(id, userId); 
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const handleDislikeComment = async (commentId: number) => {
+    try {
+      await commentAPI.toggleReaction(commentId, 0);
+      alert(`Поставили дизлайк комментарию ID: ${commentId}`);
+      fetchComments(id, userId);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const confirmAndSubmitReport = (commentId: number, ruleId: number, ruleName: string) => {
+    showConfirm(
+      "Подтверждение жалобы",
+      `Вы уверены, что хотите пожаловаться на этот комментарий по причине "${ruleName}"?`,
+      async () => {
+        try {
+          const res = await commentAPI.sendReport(commentId, ruleId);
+          if (res.success) {
+            if (Platform.OS === 'web') {
+              window.alert("Спасибо! Ваша жалоба принята и будет рассмотрена менеджером.");
+            } else {
+              Alert.alert("Спасибо", "Ваша жалоба принята и будет рассмотрена менеджером.");
+            }
+          }
+        } catch (error: any) {
+          const errorMsg = error.response?.data?.message || "Не удалось отправить жалобу.";
+          if (Platform.OS === 'web') {
+            window.alert(errorMsg);
+          } else {
+            Alert.alert("Внимание", errorMsg);
+          }
+        }
+      },
+      "Отправить" // Твой кастомный текст кнопки подтверждения
+    );
+  };
+
+  const handleReportComment = (commentId: number) => {
+    if (!userId) {
+      showNotification("Жалобы могут отправлять только авторизованные пользователи.", "error");
+      return;
+    }
+
+    const rules = [
+      { 
+        number: 1,
+        id: 6, 
+        name: "Спойлеры без предупреждения", 
+        description: "Раскрывает важные сюжетные повороты фильма/сезона" 
+      },
+      { 
+        number: 2,
+        id: 7, 
+        name: "Оскорбления или мат", 
+        description: "Содержит нецензурную лексику или агрессию к авторам/юзерам" 
+      },
+      { 
+        number: 3,
+        id: 8, 
+        name: "Спам / Реклама", 
+        description: "Ссылки на сторонние сайты, реклама услуг или одинаковый спам" 
+      },
+      { 
+        number: 4,
+        id: 9, 
+        name: "Неактуальный контент", 
+        description: "Текст вообще не относится к данному произведению" 
+      },
+    ];
+
+    if (Platform.OS === 'web') {
+      const menuMessage = `Выберите причину жалобы, введя цифру от 1 до 4:\n\n` + 
+        rules.map(r => `${r.number} - ${r.name}\n    (${r.description})`).join('\n');
+      
+      const userInput = window.prompt(menuMessage);
+   
+      // Если пользователь не нажал "Отмена"
+      if (userInput !== null) {
+        const selectedId = parseInt(userInput.trim(), 10);
+        const foundRule = rules.find(r => r.number === selectedId);
+        
+        if (foundRule) {
+          confirmAndSubmitReport(commentId, foundRule.id, foundRule.name);
+        } else {
+          window.alert("Неверный ввод. Пожалуйста, укажите существующий номер причины (1, 2, 3 или 4).");
+        }
+      }
+    } 
+    else {
+      Alert.alert(
+        "Пожаловаться на комментарий",
+        "Выберите причину жалобы:",
+        [
+          ...rules.map(r => ({
+            text: r.name,
+            onPress: () => confirmAndSubmitReport(commentId, r.id, r.name)
+          })),
+          { text: "Отмена", style: "cancel" as const }
+        ]
+      );
+    }
+  };
+
+  const handleReportMedia = (mediaId: number) => {
+    if (!userId) {
+      showNotification("Жалобы могут отправлять только авторизованные пользователи.", "error");
+      return;
+    }
+
+    // Правила строго для МЕДИА 
+    const mediaRules = [
+      { displayId: 1, id: 10, name: "Неверная информация", description: "Ошибка в описании, названии, актерах или годе выпуска" },
+      { displayId: 2, id: 11, name: "Проблема с плеером/видео", description: "Видео не загружается, лагает или пропал звук/субтитры" },
+      { displayId: 3, id: 12, name: "Нарушение прав / Другое", description: "Жалоба на доступность контента" }
+    ];
+
+    if (Platform.OS === 'web') {
+      const menuMessage = `Что именно не так с этим медиа-ресурсом?: (введите 1-3):\n\n` + 
+        mediaRules.map(r => `${r.displayId} - ${r.name}\n    (${r.description})`).join('\n\n');
+      
+      const userInput = window.prompt(menuMessage);
+      
+      if (userInput !== null) {
+        const enteredNumber = parseInt(userInput.trim(), 10);
+        const foundRule = mediaRules.find(r => r.displayId === enteredNumber);
+        
+        if (foundRule) {
+          submitMediaReport(mediaId, foundRule.id, foundRule.name);
+        } else {
+          window.alert("Неверный ввод. Укажите цифру от 1 до 3.");
+        }
+      }
+    } else {
+      const alertMessage = "Что именно не так с этим медиа-ресурсом?:\n\n" + 
+        mediaRules.map(r => `${r.displayId}. ${r.name}:\n  ${r.description}`).join('\n\n');
+
+      Alert.alert(
+        "Сообщить об ошибке",
+        alertMessage,
+        [
+          ...mediaRules.map(r => ({
+            text: r.name,
+            onPress: () => submitMediaReport(mediaId, r.id, r.name)
+          })),
+          { text: "Отмена", style: "cancel" as const }
+        ]
+      );
+    }
+  };
+
+  // Функция отправки 
+  const submitMediaReport = (mediaId: number, ruleId: number, ruleName: string) => {
+    showConfirm(
+      "Отправка отчета",
+      `Отправить модераторам сообщение о проблеме "${ruleName}"?`,
+      async () => {
+        try {
+          const res = await commentAPI.sendReport(mediaId, ruleId, true )
+          if (res.success) {
+            const msg = "Спасибо! Менеджер проверит информацию и внесет правки.";
+            Platform.OS === 'web' ? window.alert(msg) : Alert.alert("Успешно", msg);
+          }
+        } catch (error: any) {
+          const errorMsg = error.response?.data?.message || "Не удалось отправить отчет.";
+          Platform.OS === 'web' ? window.alert(errorMsg) : Alert.alert("Внимание", errorMsg);
+        }
+      },
+      "Отправить"
+    );
   };
 
   const dropdownData = [
@@ -421,6 +605,19 @@ export default function MediaDetailScreen() {
                 </View>
               )}
             </View>
+            <TouchableOpacity 
+              style={styles.reportMediaBtn} 
+              onPress={() => handleReportMedia(Number(id))} // Передаем ID текущего фильма
+              activeOpacity={0.7}
+            >
+              <MaterialCommunityIcons
+                name="alert-circle-outline" 
+                size={14} 
+                color="#777" 
+                style={{ marginRight: 4 }} 
+              />
+              <Text style={styles.reportMediaText}>Сообщить об ошибке </Text>
+            </TouchableOpacity>
           </View>
 
           <View style={styles.heroContent }>
@@ -793,8 +990,8 @@ export default function MediaDetailScreen() {
             onPress={() => setIsSpoiler(!isSpoiler)}
             activeOpacity={0.7}
           >
-            <View style={[styles.checkbox, isSpoiler && styles.checkboxActive]}>
-              {isSpoiler && <Text style={styles.checkmark}>✓</Text>}
+            <View style={[styles.checkbox, !!isSpoiler && styles.checkboxActive]}>
+              {!!isSpoiler && <Text style={styles.checkmark}>✓</Text>}
             </View>
             <Text style={styles.spoilerText}>В комментарии есть спойлеры</Text>
           </TouchableOpacity>
@@ -817,6 +1014,56 @@ export default function MediaDetailScreen() {
               {isEditing ? "Сохранить изменения" : "Отправить"}
             </Text>
           </TouchableOpacity>
+        </View>
+
+        <View style={{ paddingHorizontal: 16, marginTop: 24, marginBottom: 30 }}>
+          <Text style={{ fontSize: 18, fontWeight: 'bold', color: theme.text, marginBottom: 16 }}>
+            Отзывы и комментарии ({comments.length})
+          </Text>
+
+          {/* Селектор сортировки */}
+          <View style={{ flexDirection: 'row', marginBottom: 10 }}>
+            <TouchableOpacity 
+              onPress={() => setSortType('new')}
+              style={[styles.sortTab, sortType === 'new' && styles.sortTabActive]}
+            >
+              <Text style={[styles.sortTabText, sortType === 'new' && styles.sortTabTextActive]}>Свежие</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              onPress={() => setSortType('old')}
+              style={[styles.sortTab, sortType === 'old' && styles.sortTabActive]}
+            >
+              <Text style={[styles.sortTabText, sortType === 'old' && styles.sortTabTextActive]}>Старые</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              onPress={() => setSortType('rating')}
+              style={[styles.sortTab, sortType === 'rating' && styles.sortTabActive]}
+            >
+              <Text style={[styles.sortTabText, sortType === 'rating' && styles.sortTabTextActive]}>По рейтингу</Text>
+            </TouchableOpacity>
+          </View>
+
+          {comments.length === 0 ? (
+            // Если комментариев еще нет в базе
+            <Text style={{ color: theme.textSecondary || '#777', fontStyle: 'italic', paddingVertical: 10 }}>
+              Ещё никто не оставил отзыв. Будьте первым!
+            </Text>
+          ) : (
+            // Если комментарии есть — перебираем массив и выводим карточки
+            comments.map((item: any) => (
+              <CommentCard
+                key={item.comment_id.toString()} // Уникальный ключ для React (используем ID комментария из БД)
+                item={item}               // Сам объект комментария со всеми данными
+                currentUserId={userId}   // Вычисленный ID текущего пользователя (user_id || id)
+                theme={theme}             // Передаем текущую тему оформления ИС
+                onLike={handleLikeComment}       // Функция-обработчик лайка
+                onDislike={handleDislikeComment} // Функция-обработчик дизлайка
+                onReport={handleReportComment}   // Функция-обработчик жалобы
+              />
+            ))
+          )}
         </View>
       </ScrollView>
 
@@ -1243,7 +1490,7 @@ const getStyles = (theme: any) => StyleSheet.create({
     fontWeight: 'bold',
   },
   spoilerText: {
-    color: '#ccc',
+    color: theme.text,
     fontSize: 16,
   },
   // Контейнер для всей секции списков
@@ -1477,5 +1724,39 @@ const getStyles = (theme: any) => StyleSheet.create({
     fontSize: 14,
     // Делаем дату приглушенной (серой), чтобы она не перетягивала внимание
     color: '#888888', 
+  },
+  sortTab: {
+    paddingVertical: 6,
+    paddingHorizontal: 14,
+    borderRadius: 16,
+    backgroundColor: theme.background,
+    marginRight: 8,
+    borderWidth: 1,
+    borderColor: '#333',
+  },
+  sortTabActive: {
+    backgroundColor: '#FF3B30', // Цвет твоей ИС (красный акцент)
+    borderColor: '#FF3B30',
+  },
+  sortTabText: {
+    color: theme.text,
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  sortTabTextActive: {
+    color: '#FFF',
+  },
+  reportMediaBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 12,      // Отступ сверху от кнопки "Добавить в список"
+    paddingVertical: 8, // Область нажатия, чтобы юзеру было удобно кликать
+    alignSelf: 'center', // Центрирует кнопку по горизонтали на экране
+  },
+  reportMediaText: {
+    fontSize: 13,       // Делаем шрифт чуть меньше основного, чтобы соблюдать иерархию
+    color: '#777777',   // Нейтральный серый цвет, не перетягивающий внимание
+    textDecorationLine: 'underline', // Элегантное подчеркивание, показывающее, что это ссылка
   },
 });

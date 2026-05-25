@@ -329,10 +329,20 @@ export const commentAPI = {
   },
 
   // Получение комментариев для сезона
-  getComments: async (season_id: number): Promise<MediaComment[]> => {
-    const response = await api.get(`/comments/media/${season_id}`);
+  getComments: async (season_id: number,  userId: number | undefined, sortBy: string = 'new'): Promise<MediaComment[]> => {
+    const response = await api.get(`/comments/media/${season_id}?userId=${userId || 0}&sortBy=${sortBy}`);
     return response.data.data; 
-  } 
+  },
+
+  toggleReaction: async (commentId: number, isLike: number) => {
+    const response = await api.post(`/comments/reaction`, { commentId, isLike });
+    return response.data;
+  },
+
+  sendReport: async (commentId: number, ruleId: number, isMedia: boolean = false) => {
+    const response = await api.post('/comments/report', { commentId, ruleId, isMedia });
+    return response.data;
+  }
 };
 
 export const subscriptionAPI = {
@@ -369,9 +379,9 @@ export const listAPI = {
 };
 
 export const moderationAPI = {
-    getRules: async (): Promise<CommunityRule[]> => {
-      const response = await api.get('/moderation/rules');
-      return response.data.data;;
+  getRules: async (): Promise<CommunityRule[]> => {
+    const response = await api.get('/moderation/rules');
+    return response.data.data;;
   }
 }
 
