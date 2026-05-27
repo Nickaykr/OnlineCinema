@@ -1,3 +1,4 @@
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { FlatList, StatusBar, Text, TextInput, TouchableOpacity, View } from 'react-native';
@@ -33,6 +34,7 @@ const Header: React.FC<HeaderProps> = ({
   const [isSearching, setIsSearching] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [hasUnreadNotifications, setHasUnreadNotifications] = useState<boolean>(false);
 
 
   //Логика Debounce: обновляем debouncedSearch только через 400мс после задержки ввода
@@ -95,6 +97,15 @@ const Header: React.FC<HeaderProps> = ({
               {showProfile && (
                 <HeaderIcon onPress={onProfilePress} icon="👤" testID="profile-button" />
               )}
+              <TouchableOpacity 
+                style={styles.notificationButton} 
+                onPress={() => router.push('/notifications')} // Переход на экран уведомлений
+                activeOpacity={0.7}
+              >
+                <MaterialCommunityIcons name="bell-outline" size={24} color={'#FFFFFF'} />
+                {/* Красный кружок (индикатор новых уведомлений), если они есть */}
+                {hasUnreadNotifications && <View style={styles.badge} />}
+              </TouchableOpacity>
               <TouchableOpacity onPress={toggleTheme} style={styles.themeBtn}>
                 <Text style={styles.themeIcon}>{isDark ? '🌙' : '☀️'}</Text>
               </TouchableOpacity>

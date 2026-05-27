@@ -149,7 +149,7 @@ export default function SubscriptionScreen() {
                   value={promoInput}
               />
               <TouchableOpacity onPress={applyPromo} style={styles.applyButton}>
-                  <Text>Применить</Text>
+                  <Text style={styles.buttonText}>Применить</Text>
               </TouchableOpacity>
               {activePromo ? (
                 <Text style={{ color: '#4CAF50', fontSize: 12, marginTop: 5 }}>

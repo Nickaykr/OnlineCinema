@@ -79,6 +79,7 @@ export interface User {
   last_login?: string;
   subscription?: subscription;
   role: string;
+  lists_counts?: { status_id: number; count: number }[];
 }
 
 export interface subscription {
@@ -152,6 +153,17 @@ export interface MediaFilters {
   year?: number;
 }
 
+export interface MediaListItem {
+  media_lists_id: number;
+  season_id: number;
+  status_id: number;
+  updated_at: string;
+  season_name: string;
+  media_title: string;
+  poster_url: string | null;
+  user_rating: number | null;
+}
+
 export interface CinemaClub {
   club_id: number;
   title: string;
@@ -198,6 +210,9 @@ export const userAPI = {
   
   updateProfile: (userData: UpdateProfileData): Promise<{ data: { user: User } }> => 
     api.put('/users/profile', userData),
+
+  getListElements: (statusId: number): Promise<{ success: boolean; data: MediaListItem[] }> =>
+    api.get(`/users/lists?statusId=${statusId}`).then(res => res.data),
 
   setMediaRating: (season_id: number, rating: number): Promise<{ data: { success: boolean, newRating: number } }> => 
     api.post('/media/rate', {season_id, rating })

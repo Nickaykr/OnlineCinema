@@ -214,7 +214,7 @@ const getStyles = (theme: any) => StyleSheet.create({
     flexGrow: 0,
   },
   seeAllText: {
-    color: 'white',
+    color: theme.text,
     fontSize: Platform.OS === 'web' ? 20 : 15,
     fontWeight: '500',
   },

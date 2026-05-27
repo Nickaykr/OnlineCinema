@@ -2,6 +2,7 @@ import { router } from 'expo-router';
 import React from 'react';
 import { Dimensions, Image, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { MediaRelease } from '../../types/media.types';
+import { useTheme } from '../context/ThemeContext';
 import { CONFIG } from '../services/constants';
 
 interface HorizontalMediaCardProps {
@@ -14,6 +15,9 @@ const { width } = Dimensions.get('window');
 
 const HorizontalMediaCard: React.FC<HorizontalMediaCardProps> = ({ MediaRelease, onPress, size }) => {
   const SERVER_URL = CONFIG.SERVER_URL;
+
+  const { theme } = useTheme();
+  const styles = getStyles(theme);
 
   const item = MediaRelease as unknown as MediaRelease;
 
@@ -186,14 +190,14 @@ const HorizontalMediaCard: React.FC<HorizontalMediaCardProps> = ({ MediaRelease,
   );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (theme: any) => StyleSheet.create({
   card: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: theme.cardBackground,
     borderRadius: 16, 
     marginBottom: Platform.OS === 'web' ? 20 : 16,
     marginTop: Platform.OS === 'web' ? 20 : 25,
     marginHorizontal: Platform.OS === 'web' ? 8 : 4, 
-    overflow: 'hidden',
+    overflow: 'hidden', // Гарантирует, что постер не вылезет за скругленные углы карточки!
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.4,
@@ -203,12 +207,12 @@ const styles = StyleSheet.create({
   horizontalContainer: {
     flex: 1,
     flexDirection: 'row',
+    alignItems: 'center', // Центрирует постер и текстовый контент вертикально друг относительно друга
   },
   posterContainer: {
     position: 'relative',
-    backgroundColor: '#2a2a2a',
-    width: Platform.OS === 'web' ? 140 : 110, 
-    aspectRatio: 2/3,
+    backgroundColor: theme.background,
+    overflow: 'hidden', // Чтобы углы самого постера закруглялись вместе с карточкой
   },
   poster: {
     width: '100%',
@@ -249,7 +253,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: Platform.OS === 'web' ? 20 : 16, 
     fontWeight: 'bold',
-    color: '#fff',
+    color: theme.text,
     lineHeight: Platform.OS === 'web' ? 24 : 20, 
   },
   metaContainer: {
@@ -259,16 +263,16 @@ const styles = StyleSheet.create({
   },
   metaText: {
     fontSize: Platform.OS === 'web' ? 14 : 12,
-    color: '#888',
+    color: theme.textSecondary,
   },
   metaSeparator: {
     fontSize: Platform.OS === 'web' ? 14 : 12, 
-    color: '#888',
+    color: theme.textSecondary,
     marginHorizontal: Platform.OS === 'web' ? 6 : 4, 
   },
   description: {
     fontSize: Platform.OS === 'web' ? 14 : 12, 
-    color: '#ccc',
+    color: theme.textSecondary,
     lineHeight: Platform.OS === 'web' ? 20 : 16, 
     flex: 1,
     marginBottom: Platform.OS === 'web' ? 12 : 8, 
@@ -289,7 +293,7 @@ const styles = StyleSheet.create({
   },
   ratingLabel: {
     fontSize: Platform.OS === 'web' ? 12 : 9,
-    color: '#888',
+    color: theme.textSecondary,
     marginRight: Platform.OS === 'web' ? 4 : 2,
   },
   ratingValue: {
@@ -308,7 +312,7 @@ const styles = StyleSheet.create({
     width: 150,
   },
   watchButtonText: {
-    color: '#fff',
+    color: theme.textButton,
     fontSize: Platform.OS === 'web' ? 16 : 14, 
     fontWeight: 'bold',
   },

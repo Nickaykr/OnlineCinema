@@ -177,4 +177,19 @@ export const styles = StyleSheet.create({
     marginBottom: 10,
     opacity: 0.5,
   },
+  notificationButton: {
+    padding: 8,
+    position: 'relative',
+  },
+  badge: {
+    position: 'absolute',
+    top: 6,
+    right: 6,
+    backgroundColor: '#E50914', // Твой фирменный красный цвет
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    borderWidth: 1,
+    borderColor: '#0f0f0f', // Чтобы кружок красиво отделялся от иконки
+  },
 });
