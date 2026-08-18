@@ -1,3 +1,4 @@
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import React, { useEffect, useState } from 'react';
 import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useTheme } from '../../src/context/ThemeContext';
@@ -28,16 +29,41 @@ export default function AdminMediaList() {
 
   return (
     <View style={styles.container}>
+      {/* ВЕРХНЯЯ ПАНЕЛЬ (ХЕДЕР) */}
+      <View style={styles.header}>
+        <View style={styles.headerLeft}>
+          <TouchableOpacity 
+            style={styles.backButton} 
+            onPress={() => router.back()}
+            activeOpacity={0.7}
+          >
+            <MaterialCommunityIcons name="arrow-left" size={24} color={theme.text} />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Управление медиа</Text>
+        </View>
+
+        {/* КНОПКА ДОБАВИТЬ МЕДИА */}
+        <TouchableOpacity 
+          style={styles.addButton} 
+          onPress={() => router.push('/(admin)/media/createform')} // Ссылка для перехода на создание
+          activeOpacity={0.8}
+        >
+          <MaterialCommunityIcons name="plus" size={20} color="#FFF" />
+          <Text style={styles.addButtonText}>Добавить</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* СПИСОК МЕДИА */}
       <FlatList
         data={data}
         keyExtractor={(item) => item.media_id.toString()}
+        contentContainerStyle={styles.listContainer}
         renderItem={({ item }) => (
           <TouchableOpacity 
             style={styles.card} 
             activeOpacity={0.7} 
-            onPress={() => router.push({ pathname: '/(admin)/media/[id]', params: { id: item.media_id } 
-            })}>
-           
+            onPress={() => router.push({ pathname: '/(admin)/media/[id]', params: { id: item.media_id } })}
+          >
             <View style={styles.idBadge}>
               <Text style={styles.idText}>#{item.media_id}</Text>
             </View>
@@ -55,6 +81,15 @@ export default function AdminMediaList() {
                 </Text>
               </View>
             </View>
+
+            {/* ВИЗУАЛЬНАЯ КНОПКА УДАЛЕНИЯ */}
+            <TouchableOpacity 
+              style={styles.deleteButton} 
+              onPress={() => console.log(`Запрос на удаление медиа ID: ${item.media_id}`)}
+              activeOpacity={0.7}
+            >
+              <MaterialCommunityIcons name="delete-outline" size={24} color="#E50914" />
+            </TouchableOpacity>
           </TouchableOpacity>
         )}
       />
@@ -127,5 +162,51 @@ const createStyles = (theme: any) => StyleSheet.create({
     fontSize: 12,
     color: '#888',
     fontWeight: 'bold',
+  },
+  // ДОБАВЬ ЭТИ СТИЛИ В КОНЕЦ КУСКА createStyles:
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.border || 'rgba(255,255,255,0.1)',
+    marginBottom: 15,
+  },
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  backButton: {
+    padding: 6,
+    marginRight: 12,
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: theme.text,
+  },
+  addButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#E50914', // Фирменный красный цвет для кнопок создания
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 8,
+  },
+  addButtonText: {
+    color: '#FFF',
+    fontSize: 14,
+    fontWeight: 'bold',
+    marginLeft: 4,
+  },
+  listContainer: {
+    paddingBottom: 20,
+  },
+  deleteButton: {
+    padding: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 10,
   },
 });

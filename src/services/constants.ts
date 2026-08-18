@@ -1,4 +1,4 @@
 export const CONFIG = {
-  SERVER_URL: 'http://192.168.0.10:5000',
-  API_BASE_URL: 'http://192.168.0.10:5000/api',
+  SERVER_URL: process.env.EXPO_PUBLIC_SERVER_URL || 'http://localhost:5000',
+  API_BASE_URL: process.env.EXPO_PUBLIC_API_URL || 'http://localhost:5000/api',
 };
